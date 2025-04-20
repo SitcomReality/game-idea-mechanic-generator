@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game-Idea & Mechanic Generator</title>
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/components/chip.css">
+  <link rel="stylesheet" href="styles/components/tooltip.css">
+  <link rel="stylesheet" href="styles/components/modal.css">
+  <link rel="stylesheet" href="styles/components/tagTree.css">
+  <link rel="stylesheet" href="styles/components/panel.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "lit-html": "https://cdn.jsdelivr.net/npm/lit-html@2.7.4/lit-html.min.js"
+      }
+    }
+  </script>
+  <script type="module" src="scripts/main.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Game-Idea & Mechanic Generator</h1>
+  </header>
+  
+  <main class="app-container">
+    <section id="generator-panel" class="panel">
+      <h2>Idea Generator</h2>
+      <div id="tag-tree-container"></div>
+      <div class="source-controls">
+        <div class="control-group">
+          <label>Source:</label>
+          <div class="button-group">
+            <button data-source="wordlists" class="active">Wordlists</button>
+            <button data-source="llm">LLM</button>
+            <button data-source="hybrid">Hybrid</button>
+          </div>
+        </div>
+        
+        <div class="control-group">
+          <label for="term-quantity">Terms:</label>
+          <input type="range" id="term-quantity" min="1" max="10" value="3">
+          <span id="term-quantity-display">3</span>
+        </div>
+        
+        <div class="control-group">
+          <label for="custom-text">Custom Text:</label>
+          <textarea id="custom-text" placeholder="Enter your own terms or ideas here..."></textarea>
+        </div>
+        
+        <div class="section-toggles">
+          <h3>Include Sections:</h3>
+          <div id="section-toggle-container"></div>
+        </div>
+        
+        <button id="generate-ideas-btn" class="primary-btn">Generate Ideas</button>
+      </div>
+      
+      <div id="generated-ideas-container" class="results-container"></div>
+    </section>
+    
+    <section id="draft-panel" class="panel">
+      <h2>Design Draft</h2>
+      <div id="draft-container" class="editable-container"></div>
+      <div class="draft-controls">
+        <button id="cohere-draft-btn" class="primary-btn">Cohere Draft</button>
+      </div>
+    </section>
+    
+    <section id="brief-panel" class="panel">
+      <h2>Design Brief</h2>
+      <div id="brief-container" class="editable-container"></div>
+      <div class="brief-controls">
+        <button id="generate-brief-btn" class="primary-btn">Generate Brief</button>
+        <button id="copy-brief-btn">Copy</button>
+        <button id="download-brief-btn">Download .md</button>
+      </div>
+    </section>
+  </main>
+  
+  <footer>
+    <p>Game-Idea & Mechanic Generator • <span id="year"></span></p>
+  </footer>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+

@@ -1,0 +1,96 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 0 var(--spacing-s) 0 var(--spacing-xs);
+  margin: var(--spacing-xs);
+  font-size: 0.9rem;
+  user-select: none;
+  transition: all 0.2s ease;
+  cursor: grab;
+}
+
+.chip:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--accent-primary);
+}
+
+.chip.dragging {
+  opacity: 0.7;
+  cursor: grabbing;
+}
+
+.chip-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-right: var(--spacing-xs);
+  opacity: 0.7;
+  cursor: grab;
+}
+
+.chip-label {
+  margin-right: var(--spacing-xs);
+}
+
+.chip-delete, .chip-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 0.8rem;
+  border-radius: 50%;
+  margin-left: var(--spacing-xs);
+  cursor: pointer;
+}
+
+.chip-delete {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.chip-delete:hover {
+  color: var(--danger);
+}
+
+.chip-info {
+  background-color: var(--text-secondary);
+  color: var(--bg-primary);
+  font-weight: bold;
+}
+
+.chip-info:hover {
+  background-color: var(--accent-primary);
+}
+
+.chip-container {
+  margin: var(--spacing-s) 0;
+  min-height: 40px;
+  padding: var(--spacing-xs);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--border-radius-m);
+}
+
+.chip-category {
+  color: var(--accent-tertiary);
+  font-weight: 600;
+  margin-right: var(--spacing-xs);
+}
+
+.chip.mechanic {
+  border-color: #5d8fd9;
+}
+
+.chip.theme {
+  border-color: #d95d8f;
+}
+
+.chip.setting {
+  border-color: #8fd95d;
+}
+

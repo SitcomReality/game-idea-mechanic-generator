@@ -1,0 +1,63 @@
+.tag-tree {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-m);
+  padding: var(--spacing-s);
+  margin-bottom: var(--spacing-m);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.tag-tree-node {
+  margin: var(--spacing-xs) 0;
+  padding-left: var(--spacing-s);
+}
+
+.tag-tree-toggle {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+}
+
+.tag-tree-toggle::before {
+  content: "►";
+  display: inline-block;
+  margin-right: var(--spacing-xs);
+  font-size: 0.7rem;
+  transition: transform 0.2s;
+}
+
+.tag-tree-toggle.expanded::before {
+  transform: rotate(90deg);
+}
+
+.tag-tree-children {
+  margin-left: var(--spacing-m);
+  display: none;
+}
+
+.tag-tree-children.expanded {
+  display: block;
+}
+
+.tag-tree-checkbox {
+  margin-right: var(--spacing-xs);
+}
+
+.tag-tree-label {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.tag-tree-label:hover {
+  color: var(--accent-tertiary);
+}
+
+.tag-path {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-left: var(--spacing-s);
+}
+
