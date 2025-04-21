@@ -269,6 +269,5 @@ export function initBriefPanel(state) {
     briefContainer.innerHTML = '<p class="empty-state">Generate a design brief from your draft</p>';
   }
 
-  // Initialize options UI from state
-  state.notifyListeners('briefOptions'); // Trigger initial sync
+  // Initialize options UI from state - The subscribe call already handles this.
 }
