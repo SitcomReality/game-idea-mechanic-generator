@@ -126,6 +126,14 @@
   width: 100%; /* Make selects full width */
 }
 
+/* Improve wrapping in brief container */
+#brief-container pre,
+#brief-container code {
+  white-space: pre-wrap; /* Allows wrapping but preserves whitespace */
+  word-wrap: break-word; /* Breaks long words/lines */
+  overflow-x: auto; /* Still allow scroll if absolutely necessary, but wrapping preferred */
+}
+
 /* Selected Tags Section Styles */
 #selected-tags-section {
   margin-top: var(--spacing-m);
