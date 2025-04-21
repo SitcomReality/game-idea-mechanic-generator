@@ -25,6 +25,12 @@ function getAllTagPaths(taxonomy, currentPath = []) {
   return paths;
 }
 
+// Helper function to create CSS-friendly class names from categories
+function getCategoryClassName(categoryName) {
+  if (!categoryName) return 'category-default';
+  return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
+}
+
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
   const tabButtonsContainer = document.getElementById('taxonomy-tab-buttons');
@@ -56,7 +62,8 @@ export function initGeneratorPanel(state) {
     Object.entries(taxonomy).forEach(([categoryName, categoryData]) => {
       // Create Tab Button
       const tabButton = document.createElement('button');
-      tabButton.className = 'tab-button';
+      const categoryClassName = getCategoryClassName(categoryName); // Generate class name
+      tabButton.className = `tab-button ${categoryClassName}`; // Add category class
       tabButton.textContent = categoryName;
       tabButton.dataset.targetTab = categoryName.replace(/\s+/g, '-').toLowerCase(); // Create a unique ID
       tabButtonsContainer.appendChild(tabButton);

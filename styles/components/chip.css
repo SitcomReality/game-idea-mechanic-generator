@@ -37,13 +37,24 @@
 }
 
 .chip-category {
-  color: var(--accent-alt);
+  /* Default color is set via category class */
+  color: var(--category-default); /* Fallback */
   font-weight: normal;
   font-size: 0.75rem;
   margin-bottom: 3px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Apply specific category colors */
+.chip.category-mechanic .chip-category { color: var(--category-mechanic); }
+.chip.category-narrative-theme .chip-category { color: var(--category-narrative-theme); }
+.chip.category-setting-context .chip-category { color: var(--category-setting-context); }
+.chip.category-game-economy .chip-category { color: var(--category-game-economy); }
+.chip.category-progression .chip-category { color: var(--category-progression); }
+.chip.category-ui .chip-category { color: var(--category-ui); }
+.chip.category-social-multiplayer .chip-category { color: var(--category-social-multiplayer); }
+/* Add more rules here if top-level categories change */
 
 .chip-label {
   font-weight: bold;

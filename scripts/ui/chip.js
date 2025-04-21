@@ -1,8 +1,15 @@
 import { showTooltip, hideTooltip } from './tooltipManager.js';
 
+// Helper function to create CSS-friendly class names from categories
+function getCategoryClassName(categoryName) {
+  if (!categoryName) return 'category-default';
+  return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
+}
+
 export function createChip({ text, category, tooltip = '', onDragStart, onDelete }) {
   const chip = document.createElement('div');
-  chip.className = `chip ${category?.toLowerCase() || ''}`;
+  const categoryClassName = getCategoryClassName(category); // Generate class name
+  chip.className = `chip ${categoryClassName}`; // Add category class
   chip.draggable = true;
 
   // Container for category and label
@@ -72,7 +79,6 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   if (actionsDiv.hasChildNodes()) {
       chip.appendChild(actionsDiv);
   }
-
 
   // Drag events
   chip.addEventListener('dragstart', (event) => {

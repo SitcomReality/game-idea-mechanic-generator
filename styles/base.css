@@ -20,6 +20,17 @@
   --border-color: #383838;      /* Softer borders */
   --border-color-light: #4a4a4a; /* Slightly lighter border for secondary elements */
 
+  /* Category Colors */
+  --category-mechanic: #4db6ac; /* Teal */
+  --category-narrative-theme: #ffb74d; /* Orange */
+  --category-setting-context: #81c784; /* Green */
+  --category-game-economy: #64b5f6; /* Blue */
+  --category-progression: #fff176; /* Yellow */
+  --category-ui: #f06292; /* Pink */
+  --category-social-multiplayer: #ba68c8; /* Purple */
+  --category-default: var(--text-secondary); /* Fallback */
+
+
   /* Sizing */
   --spacing-xs: 0.25rem;
   --spacing-s: 0.5rem;
