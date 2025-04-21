@@ -1,6 +1,6 @@
 import { generateGameIdea } from '../llm/callLLM.js';
 
-export async function generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, designDraftContext) {
+export async function generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, designDraftContext, ideaDetailLevel) {
   try {
     const enabledCategories = [];
     if (enabledSections.mechanics) enabledCategories.push('Mechanic');
@@ -29,7 +29,8 @@ export async function generateIdeasFromLLM(selectedTags, quantity, customText, e
       categories,
       quantity,
       customText,
-      draftContext: draftText 
+      draftContext: draftText,
+      ideaDetailLevel
     });
 
     return ideas;

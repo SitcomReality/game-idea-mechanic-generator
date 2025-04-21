@@ -3,6 +3,7 @@ export function initState() {
   const DRAFT_STORAGE_KEY = 'gimg_designDraft';
   const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
   const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; // New key
+  const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel'; // New key for detail level
 
   // Load initial draft from localStorage
   const initialDraft = (() => {
@@ -53,6 +54,12 @@ export function initState() {
     }
   })();
 
+  // Load initial idea detail level from localStorage
+  const initialIdeaDetailLevel = (() => {
+    const storedValue = localStorage.getItem(IDEA_DETAIL_STORAGE_KEY);
+    // Default to 'standard' if not found or invalid
+    return ['brief', 'standard', 'detailed'].includes(storedValue) ? storedValue : 'standard';
+  })();
 
   // Private state
   const _state = {
@@ -70,7 +77,8 @@ export function initState() {
     designDraft: initialDraft, // Load from storage
     designBrief: '',
     useDraftContext: initialUseDraftContext, // Load from storage, default true
-    briefOptions: initialBriefOptions // Load from storage
+    briefOptions: initialBriefOptions, // Load from storage
+    ideaDetailLevel: initialIdeaDetailLevel // Add new state variable
   };
 
   // Subscription system
@@ -84,7 +92,8 @@ export function initState() {
     designDraft: [],
     designBrief: [],
     useDraftContext: [],
-    briefOptions: [] // New listener array
+    briefOptions: [],
+    ideaDetailLevel: [] // New listener array
   };
 
   // Save draft to localStorage helper
@@ -114,6 +123,14 @@ export function initState() {
     }
   }
 
+  // Save idea detail level setting to localStorage helper
+  function saveIdeaDetailLevelToStorage(level) {
+    try {
+      localStorage.setItem(IDEA_DETAIL_STORAGE_KEY, level);
+    } catch (error) {
+      console.error('Error saving idea detail level to localStorage:', error);
+    }
+  }
 
   // Notify listeners of state changes
   function notifyListeners(key) {
@@ -170,7 +187,8 @@ export function initState() {
     getDesignDraft: () => [..._state.designDraft],
     getDesignBrief: () => _state.designBrief,
     getUseDraftContext: () => _state.useDraftContext,
-    getBriefOptions: () => ({ ..._state.briefOptions }), // Return a copy
+    getBriefOptions: () => ({ ..._state.briefOptions }),
+    getIdeaDetailLevel: () => _state.ideaDetailLevel, // New getter
 
     // Setters
     setTaxonomy: (taxonomy) => {
@@ -252,6 +270,16 @@ export function initState() {
       }
     },
 
+    setIdeaDetailLevel: (level) => {
+      if (['brief', 'standard', 'detailed'].includes(level)) {
+        _state.ideaDetailLevel = level;
+        saveIdeaDetailLevelToStorage(level); // Save on change
+        notifyListeners('ideaDetailLevel');
+      } else {
+        console.warn(`Attempted to set invalid idea detail level: ${level}`);
+      }
+    },
+
     // Import/Export
     exportDesignDraft: () => {
         return JSON.stringify(_state.designDraft, null, 2); // Pretty print JSON
@@ -276,14 +304,13 @@ export function initState() {
     },
 
     // Internal function exposed for specific use cases (like initial render)
-    notifyListeners: notifyListeners, // <-- EXPOSE THE FUNCTION HERE
+    notifyListeners: notifyListeners,
 
     // Subscription methods
     subscribe: (key, callback) => {
       if (listeners[key]) {
         listeners[key].push(callback);
         // Immediately invoke with current state
-        // Check if _state[key] exists before calling callback
         if (_state.hasOwnProperty(key)) {
           callback(_state[key]);
         }

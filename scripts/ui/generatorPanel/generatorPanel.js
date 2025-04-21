@@ -44,13 +44,12 @@ function normalizeCategoryName(categoryName) {
   return categoryName || 'Uncategorized'; // Provide a default if null/undefined
 }
 
-
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
   const tabButtonsContainer = document.getElementById('taxonomy-tab-buttons');
   const tabContentContainer = document.getElementById('taxonomy-tab-content');
-  const randomTagButton = document.getElementById('random-tag-btn'); // Get the random button
-  const clearTagsButton = document.getElementById('clear-tags-btn'); // Get the clear button
+  const randomTagButton = document.getElementById('random-tag-btn');
+  const clearTagsButton = document.getElementById('clear-tags-btn');
   const termQuantityInput = document.getElementById('term-quantity');
   const termQuantityDisplay = document.getElementById('term-quantity-display');
   const customTextInput = document.getElementById('custom-text');
@@ -58,10 +57,11 @@ export function initGeneratorPanel(state) {
   const sectionToggleContainer = document.getElementById('section-toggle-container');
   const generateButton = document.getElementById('generate-ideas-btn');
   const ideasContainer = document.getElementById('generated-ideas-container');
-  const selectedTagsListContainer = document.getElementById('selected-tags-list'); // Get the new container
+  const selectedTagsListContainer = document.getElementById('selected-tags-list');
+  const ideaDetailLevelSelect = document.getElementById('idea-detail-level');
 
-  let firstTab = true; // Flag to make the first tab active initially
-  let allPathsCache = []; // Cache for tag paths
+  let firstTab = true;
+  let allPathsCache = [];
 
   state.subscribe('taxonomy', (taxonomy) => {
     // Clear existing tabs
@@ -185,9 +185,15 @@ export function initGeneratorPanel(state) {
   useDraftContextCheckbox.addEventListener('change', () => {
     state.setUseDraftContext(useDraftContextCheckbox.checked);
   });
-
   state.subscribe('useDraftContext', (useContext) => {
     useDraftContextCheckbox.checked = useContext;
+  });
+
+  ideaDetailLevelSelect.addEventListener('change', () => {
+    state.setIdeaDetailLevel(ideaDetailLevelSelect.value);
+  });
+  state.subscribe('ideaDetailLevel', (level) => {
+    ideaDetailLevelSelect.value = level;
   });
 
   const sections = {
@@ -230,20 +236,27 @@ export function initGeneratorPanel(state) {
       const enabledSections = state.getEnabledSections();
       const designDraft = state.getDesignDraft();
       const useDraftContext = state.getUseDraftContext();
+      const ideaDetailLevel = state.getIdeaDetailLevel();
 
       let ideas = [];
       const draftContextForLLM = useDraftContext ? designDraft : null;
 
-      ideas = await generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, draftContextForLLM);
+      ideas = await generateIdeasFromLLM(
+        selectedTags,
+        quantity,
+        customText,
+        enabledSections,
+        draftContextForLLM,
+        ideaDetailLevel
+      );
 
-      // --- NORMALIZATION STEP ---
+      // Normalize category names before setting state
       const normalizedIdeas = ideas.map(idea => ({
         ...idea,
-        category: normalizeCategoryName(idea.category) // Normalize the category name
+        category: normalizeCategoryName(idea.category)
       }));
-      // --- END NORMALIZATION ---
 
-      state.setGeneratedIdeas(normalizedIdeas); // Set state with normalized ideas
+      state.setGeneratedIdeas(normalizedIdeas);
 
     } catch (error) {
       console.error('Error generating ideas:', error);
@@ -254,7 +267,6 @@ export function initGeneratorPanel(state) {
     }
   });
 
-  // Add event listener for the random tag button
   randomTagButton.addEventListener('click', () => {
     if (allPathsCache.length === 0) {
       console.warn('No tag paths available to select from.');
@@ -262,20 +274,15 @@ export function initGeneratorPanel(state) {
     }
     const randomIndex = Math.floor(Math.random() * allPathsCache.length);
     const randomTagPath = allPathsCache[randomIndex];
-    console.log(`Randomly selecting: ${randomTagPath}`); // For debugging
-    state.addSelectedTag(randomTagPath); // Add the tag to the state
+    state.addSelectedTag(randomTagPath);
   });
 
-  // Add event listener for the clear tags button
   clearTagsButton.addEventListener('click', () => {
-      if (state.getSelectedTags().size > 0) {
-          if (window.confirm('Are you sure you want to clear all selected tags?')) {
-              state.setSelectedTags(new Set()); // Clear all tags in the state
-          }
-      } else {
-          // Optionally provide feedback if there are no tags to clear
-          console.log('No tags selected to clear.');
+    if (state.getSelectedTags().size > 0) {
+      if (window.confirm('Are you sure you want to clear all selected tags?')) {
+        state.setSelectedTags(new Set());
       }
+    }
   });
 
   state.subscribe('generatedIdeas', (ideas) => {
@@ -285,20 +292,15 @@ export function initGeneratorPanel(state) {
       ideasContainer.innerHTML = '<p class="empty-state">Generate ideas to see results here</p>';
       return;
     }
-
-    // Grouping is no longer needed for visual separation,
-    // as chips now handle their own category display.
-    // Directly render chips.
     const chipsContainer = document.createElement('div');
-    chipsContainer.className = 'chip-container'; // Use a container if needed for spacing/layout
+    chipsContainer.className = 'chip-container';
 
     ideas.forEach(idea => {
       const chip = createChip({
         text: idea.text,
-        category: idea.category, // Use the (already normalized) category name
+        category: idea.category,
         tooltip: idea.description || '',
         onDragStart: (event) => {
-          // Data sent for drag/drop should also be normalized
           event.dataTransfer.setData('application/json', JSON.stringify(idea));
         },
         onDelete: () => {
@@ -310,12 +312,12 @@ export function initGeneratorPanel(state) {
     });
 
     ideasContainer.appendChild(chipsContainer);
-
   });
 
   // Initialize components with current state
   state.setGeneratedIdeas([]);
   state.setUseDraftContext(state.getUseDraftContext());
-  // Initial render of the selected tags list
+  state.setIdeaDetailLevel(state.getIdeaDetailLevel());
   renderSelectedTagsList(state.getSelectedTags());
+  syncTagTreeCheckboxes(state.getSelectedTags());
 }
