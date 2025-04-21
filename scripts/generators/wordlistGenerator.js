@@ -7,13 +7,19 @@ export async function generateIdeasFromWordlists(selectedTags, quantity, enabled
     
     // Filter wordlists based on enabled sections
     const filteredLists = {};
-    Object.keys(wordlists).forEach(key => {
-      // Map wordlist keys to section keys (e.g., "mechanics" -> "mechanics")
-      const sectionKey = key.toLowerCase();
-      if (enabledSections[sectionKey]) {
-        filteredLists[key] = wordlists[key];
-      }
-    });
+    
+    if (enabledSections.mechanics && wordlists.Mechanics) {
+      filteredLists.Mechanics = wordlists.Mechanics;
+    }
+    if (enabledSections.themes && wordlists.Themes) {
+      filteredLists.Themes = wordlists.Themes;
+    }
+    if (enabledSections.settings && wordlists.Settings) {
+      filteredLists.Settings = wordlists.Settings;
+    }
+    if (enabledSections.systems && wordlists.Systems) {
+      filteredLists.Systems = wordlists.Systems;
+    }
     
     // If no lists are enabled or available, throw an error
     if (Object.keys(filteredLists).length === 0) {
@@ -22,11 +28,33 @@ export async function generateIdeasFromWordlists(selectedTags, quantity, enabled
     
     // Filter terms by selected tags (if any)
     const filteredTerms = {};
+    
     if (selectedTags.size > 0) {
+      const tagsArray = Array.from(selectedTags);
+      
       Object.keys(filteredLists).forEach(listKey => {
         filteredTerms[listKey] = filteredLists[listKey].filter(item => {
+          // If the item doesn't have tags, exclude it when tags are selected
+          if (!item.tags || item.tags.length === 0) {
+            return false;
+          }
+          
           // Check if any of the item's tags match the selected tags
-          return item.tags && item.tags.some(tag => selectedTags.has(tag));
+          // Include the item if any tag matches any part of the taxonomy path
+          return item.tags.some(tag => {
+            return tagsArray.some(selectedTag => {
+              // Check if tag is exactly the selected tag
+              if (tag === selectedTag) return true;
+              
+              // Check if tag starts with the selected tag (parent-child relationship)
+              if (tag.startsWith(selectedTag + '.')) return true;
+              
+              // Check if selected tag starts with the tag (child-parent relationship)
+              if (selectedTag.startsWith(tag + '.')) return true;
+              
+              return false;
+            });
+          });
         });
       });
     } else {
@@ -37,19 +65,18 @@ export async function generateIdeasFromWordlists(selectedTags, quantity, enabled
     // Generate random selections from each list
     const results = [];
     
-    Object.keys(filteredTerms).forEach(category => {
+    // Calculate how many items to pick from each category
+    const enabledCategories = Object.keys(filteredTerms);
+    const termsPerCategory = Math.ceil(quantity / enabledCategories.length);
+    
+    enabledCategories.forEach(category => {
       const terms = filteredTerms[category];
       
       // Skip empty lists
       if (!terms || terms.length === 0) return;
       
-      // Calculate how many items to pick from this category
-      // For simplicity, we'll distribute evenly, but you could implement
-      // more sophisticated distribution logic
-      const categoryQuantity = Math.ceil(quantity / Object.keys(filteredTerms).length);
-      
       // Randomly select terms
-      const selectedTerms = selectRandomTerms(terms, categoryQuantity);
+      const selectedTerms = selectRandomTerms(terms, termsPerCategory);
       
       // Add to results
       selectedTerms.forEach(term => {
@@ -90,4 +117,3 @@ function selectRandomTerms(termList, count) {
   
   return selected;
 }
-

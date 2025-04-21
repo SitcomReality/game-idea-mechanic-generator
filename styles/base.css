@@ -134,3 +134,38 @@ a:hover {
   background: var(--accent-primary);
 }
 
+/* Add error message styling */
+.error-message {
+  color: var(--danger);
+  background-color: rgba(255, 92, 92, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: var(--border-radius-m);
+  padding: var(--spacing-m);
+  margin: var(--spacing-m) 0;
+}
+
+.empty-state {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: var(--spacing-l);
+  font-style: italic;
+}
+
+.toggle-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.toggle-item input[type="checkbox"] {
+  margin-right: var(--spacing-xs);
+}
+
+.idea-category {
+  margin-bottom: var(--spacing-m);
+}
+
+.idea-category h3 {
+  margin-bottom: var(--spacing-xs);
+  color: var(--accent-tertiary);
+}

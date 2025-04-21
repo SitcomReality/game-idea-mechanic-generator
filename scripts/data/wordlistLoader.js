@@ -3,7 +3,6 @@
 export async function getWordlists() {
   // In a real application, you would fetch these from files or a server
   // For now, we'll return hardcoded wordlists
-  
   return {
     "Mechanics": [
       {
@@ -215,4 +214,3 @@ export async function getWordlists() {
     ]
   };
 }
-

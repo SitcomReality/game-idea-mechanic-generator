@@ -152,7 +152,7 @@ export function initGeneratorPanel(state) {
           text: idea.text,
           category: idea.category,
           tooltip: idea.description || '',
-          onDragStart: () => {
+          onDragStart: (event) => {
             // Store idea data for draft panel
             event.dataTransfer.setData('application/json', JSON.stringify(idea));
           },
@@ -174,4 +174,3 @@ export function initGeneratorPanel(state) {
   // Initialize with empty state
   state.setGeneratedIdeas([]);
 }
-
