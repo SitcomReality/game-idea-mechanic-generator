@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Unreliable Narrator",
+    "description": "The story is told from the perspective of a character whose credibility is compromised."
+  },
+  {
+    "text": "Red Herrings",
+    "description": "Misleading clues or plot threads designed to distract the player/reader from the real solution."
+  }
+]

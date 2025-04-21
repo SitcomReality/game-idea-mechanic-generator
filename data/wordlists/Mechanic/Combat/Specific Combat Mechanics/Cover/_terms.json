@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Dynamic Cover",
+    "description": "Objects in the environment can be used as cover, potentially destructible or offering varying protection levels."
+  },
+  {
+    "text": "Blind Fire",
+    "description": "Shooting from behind cover without aiming, offering lower accuracy but higher safety."
+  }
+]

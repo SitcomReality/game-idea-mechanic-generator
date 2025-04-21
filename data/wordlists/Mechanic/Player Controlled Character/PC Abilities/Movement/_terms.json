@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Double Jump",
+    "description": "Allows the player character to perform a second jump while in mid-air."
+  },
+  {
+    "text": "Dash",
+    "description": "A quick burst of speed in a specified direction, often used for dodging or traversing gaps."
+  }
+]

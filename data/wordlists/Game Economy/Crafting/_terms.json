@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Recipe Discovery",
+    "description": "Players must find or learn recipes before they can craft specific items."
+  },
+  {
+    "text": "Material Quality",
+    "description": "The quality of materials used in crafting affects the stats or properties of the resulting item."
+  }
+]
