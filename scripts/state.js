@@ -1,6 +1,7 @@
 // Central state management for the application
 export function initState() {
   const DRAFT_STORAGE_KEY = 'gimg_designDraft';
+  const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
 
   // Load initial draft from localStorage
   const initialDraft = (() => {
@@ -13,6 +14,20 @@ export function initState() {
       return [];
     }
   })();
+
+  // Load initial draft context setting from localStorage
+  const initialUseDraftContext = (() => {
+    try {
+        const storedValue = localStorage.getItem(DRAFT_CONTEXT_STORAGE_KEY);
+        // Default to true if not found or invalid
+        return storedValue === null ? true : JSON.parse(storedValue);
+    } catch (error) {
+        console.error('Error loading draft context setting from localStorage:', error);
+        localStorage.removeItem(DRAFT_CONTEXT_STORAGE_KEY); // Clear invalid data
+        return true;
+    }
+  })();
+
 
   // Private state
   const _state = {
@@ -29,7 +44,8 @@ export function initState() {
     },
     generatedIdeas: [],
     designDraft: initialDraft, // Load from storage
-    designBrief: ''
+    designBrief: '',
+    useDraftContext: initialUseDraftContext // Load from storage, default true
   };
   
   // Subscription system
@@ -42,7 +58,8 @@ export function initState() {
     enabledSections: [],
     generatedIdeas: [],
     designDraft: [],
-    designBrief: []
+    designBrief: [],
+    useDraftContext: [] // Add listener key
   };
 
   // Save draft to localStorage helper
@@ -51,6 +68,15 @@ export function initState() {
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch (error) {
       console.error('Error saving design draft to localStorage:', error);
+    }
+  }
+
+  // Save draft context setting to localStorage helper
+  function saveDraftContextSettingToStorage(useContext) {
+    try {
+        localStorage.setItem(DRAFT_CONTEXT_STORAGE_KEY, JSON.stringify(useContext));
+    } catch (error) {
+        console.error('Error saving draft context setting to localStorage:', error);
     }
   }
   
@@ -73,6 +99,7 @@ export function initState() {
     getGeneratedIdeas: () => [..._state.generatedIdeas],
     getDesignDraft: () => [..._state.designDraft],
     getDesignBrief: () => _state.designBrief,
+    getUseDraftContext: () => _state.useDraftContext, // Add getter
     
     // Setters
     setTaxonomy: (taxonomy) => {
@@ -141,6 +168,12 @@ export function initState() {
     setDesignBrief: (brief) => {
       _state.designBrief = brief;
       notifyListeners('designBrief');
+    },
+
+    setUseDraftContext: (useContext) => { // Add setter
+        _state.useDraftContext = useContext;
+        saveDraftContextSettingToStorage(useContext); // Save to storage
+        notifyListeners('useDraftContext');
     },
     
     // Subscription methods

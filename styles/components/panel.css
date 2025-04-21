@@ -53,6 +53,16 @@
   margin-bottom: var(--spacing-m);
 }
 
+/* Add spacing around the draft context checkbox */
+#use-draft-context-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+#use-draft-context {
+  margin-right: var(--spacing-xs);
+}
+
 #custom-text {
   width: 100%;
   min-height: 100px;
@@ -64,4 +74,3 @@
   gap: var(--spacing-s);
   margin-top: var(--spacing-s);
 }
-
