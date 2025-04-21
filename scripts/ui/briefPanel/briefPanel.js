@@ -1,6 +1,6 @@
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { MAKE_BRIEF } from '../../llm/prompts.js';
-import * as marked from 'marked';
+import { parse } from 'marked';
 
 export function initBriefPanel(state) {
   const briefContainer = document.getElementById('brief-container');
@@ -53,13 +53,13 @@ export function initBriefPanel(state) {
       const generatedMarkdown = await callLLMWithPrompt(filledPrompt);
       currentBriefMarkdown = generatedMarkdown; // Store the raw Markdown
 
-      // Check if marked object and parse method exist
-      if (!marked || typeof marked.parse !== 'function') {
+      // Check if the imported parse function exists
+      if (typeof parse !== 'function') {
           throw new Error("Markdown parser (marked.js) failed to load or its 'parse' method is not available.");
       }
 
-      // Parse Markdown to HTML using the imported marked object's parse method
-      const generatedHtml = marked.parse(currentBriefMarkdown);
+      // Parse Markdown to HTML using the imported parse function directly
+      const generatedHtml = parse(currentBriefMarkdown);
 
       // Update the brief container display
       briefContainer.innerHTML = generatedHtml;
