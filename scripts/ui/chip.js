@@ -1,4 +1,4 @@
-import { showTooltip, hideTooltip } from './tooltipManager.js';
+import { showTooltip, hideTooltip } from './tooltipManager.js'; // Keep for potential future tooltips elsewhere
 
 // Helper function to normalize category names before generating class names
 function normalizeCategoryNameForClass(categoryName) {
@@ -17,23 +17,26 @@ function getCategoryClassName(categoryName) {
   return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
-export function createChip({ text, category, tooltip = '', onDragStart, onDelete }) {
+export function createChip({ text, category, description = '', onDragStart, onDelete }) {
   const chip = document.createElement('div');
-  // Generate class name based on potentially normalized category
   const categoryClassName = getCategoryClassName(category);
-  chip.className = `chip ${categoryClassName}`; // Add category class
+  chip.className = `chip ${categoryClassName}`;
   chip.draggable = true;
+
+  // Main visible part of the chip (category, label, toggle indicator)
+  const chipHeader = document.createElement('div');
+  chipHeader.className = 'chip-header';
 
   // Container for category and label
   const contentDiv = document.createElement('div');
   contentDiv.className = 'chip-content';
 
-  // Category label (if provided) - Use the original category string for display text
-  const displayCategory = category || ''; // Use the full path for display if needed
+  // Category label (if provided)
+  const displayCategory = category || '';
   if (displayCategory) {
     const categorySpan = document.createElement('span');
     categorySpan.className = 'chip-category';
-    categorySpan.textContent = displayCategory; // Display the potentially full category path
+    categorySpan.textContent = displayCategory;
     contentDiv.appendChild(categorySpan);
   }
 
@@ -43,38 +46,35 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   label.textContent = text;
   contentDiv.appendChild(label);
 
-  chip.appendChild(contentDiv);
+  chipHeader.appendChild(contentDiv);
 
-  // Container for action buttons (info, delete)
+  // Toggle Indicator (only if there's a description)
+  if (description) {
+    const toggleIndicator = document.createElement('span');
+    toggleIndicator.className = 'chip-toggle-indicator';
+    toggleIndicator.innerHTML = '►'; // Use a simple character for now
+    chipHeader.appendChild(toggleIndicator);
+  }
+
+  chip.appendChild(chipHeader);
+
+
+  // Details section (hidden by default)
+  let detailsDiv = null;
+  if (description) {
+    detailsDiv = document.createElement('div');
+    detailsDiv.className = 'chip-details';
+    detailsDiv.textContent = description;
+    chip.appendChild(detailsDiv); // Add it to the chip, but it will be hidden by CSS
+  }
+
+
+  // Container for action buttons (copy, delete)
   const actionsDiv = document.createElement('div');
   actionsDiv.className = 'chip-actions';
 
-  // Info button (if tooltip provided)
-  if (tooltip) {
-    const infoBtn = document.createElement('button'); // Changed to button for accessibility
-    infoBtn.className = 'chip-info';
-    infoBtn.innerHTML = '<i>i</i>'; // Use italic 'i' or an icon font
-    infoBtn.setAttribute('aria-label', 'More information');
-    infoBtn.dataset.tooltipText = tooltip;
-
-    // Add event listeners to show/hide the global tooltip
-    infoBtn.addEventListener('mouseenter', (event) => {
-      showTooltip(event.currentTarget, tooltip);
-    });
-    infoBtn.addEventListener('mouseleave', () => {
-      hideTooltip();
-    });
-    // Add focus/blur for accessibility
-    infoBtn.addEventListener('focus', (event) => {
-       showTooltip(event.currentTarget, tooltip);
-    });
-     infoBtn.addEventListener('blur', () => {
-       hideTooltip();
-    });
-
-    actionsDiv.appendChild(infoBtn);
-
-    // Add Copy button only if there's tooltip info to copy
+  // Copy button (if description provided)
+  if (description) {
     const copyBtn = document.createElement('button');
     copyBtn.className = 'chip-copy';
     copyBtn.innerHTML = '📋'; // Copy emoji or icon
@@ -82,9 +82,8 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
     copyBtn.title = 'Copy details'; // Tooltip for the button itself
 
     copyBtn.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent drag start
-      // Use the tooltip text for copying
-      navigator.clipboard.writeText(tooltip).then(() => {
+      e.stopPropagation(); // Prevent toggle/drag start
+      navigator.clipboard.writeText(description).then(() => {
         copyBtn.innerHTML = '✓'; // Checkmark for success
         copyBtn.title = 'Copied!';
         setTimeout(() => {
@@ -106,13 +105,13 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
 
   // Delete button
   if (onDelete) {
-    const deleteBtn = document.createElement('button'); // Changed to button for accessibility
+    const deleteBtn = document.createElement('button');
     deleteBtn.className = 'chip-delete';
-    deleteBtn.innerHTML = '&times;'; // Use HTML entity for 'x'
+    deleteBtn.innerHTML = '&times;';
     deleteBtn.setAttribute('aria-label', 'Delete item');
-    deleteBtn.title = 'Delete'; // Tooltip for the button
+    deleteBtn.title = 'Delete';
     deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent drag start when clicking delete
+        e.stopPropagation(); // Prevent toggle/drag start
         onDelete();
     });
     actionsDiv.appendChild(deleteBtn);
@@ -120,8 +119,23 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
 
   // Only add actions container if it has children
   if (actionsDiv.hasChildNodes()) {
-      chip.appendChild(actionsDiv);
+      chipHeader.appendChild(actionsDiv); // Add actions to the header part
   }
+
+
+  // --- Event Listeners ---
+
+  // Toggle expand/collapse on header click (if description exists)
+  if (description) {
+    chipHeader.addEventListener('click', (event) => {
+      // Prevent toggle if clicking on action buttons
+      if (!event.target.closest('.chip-actions')) {
+        chip.classList.toggle('expanded');
+      }
+    });
+    chipHeader.classList.add('clickable'); // Add class for cursor style
+  }
+
 
   // Drag events
   chip.addEventListener('dragstart', (event) => {
@@ -130,11 +144,24 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
       event.preventDefault();
       return;
     }
+    // Don't start drag if the chip is expanded (might interfere with text selection)
+    if (chip.classList.contains('expanded')) {
+        event.preventDefault();
+        return;
+    }
+
     chip.classList.add('dragging');
     if (onDragStart) {
-      onDragStart(event); // Pass the event containing potentially normalized data
+      // Pass the necessary data for the drop target
+      const dataToTransfer = {
+        text: text,
+        category: category,
+        description: description,
+        type: 'chip' // Explicitly mark as chip type for draft panel
+      };
+      event.dataTransfer.setData('application/json', JSON.stringify(dataToTransfer));
     }
-    hideTooltip();
+    // hideTooltip(); // Might not be needed anymore
   });
 
   chip.addEventListener('dragend', () => {

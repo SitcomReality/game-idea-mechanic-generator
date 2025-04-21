@@ -1,6 +1,7 @@
 import { renderTagTree } from '../tagTree.js';
 import { createChip } from '../chip.js';
 import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
+import { showTooltip, hideTooltip } from '../tooltipManager.js';
 
 // Helper function to recursively flatten the taxonomy into a list of selectable tag paths
 function getAllTagPaths(taxonomy, currentPath = []) {
@@ -267,6 +268,17 @@ export function initGeneratorPanel(state) {
     }
   });
 
+  // Add tooltips to control buttons
+  randomTagButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, 'Select a random tag from the full taxonomy'));
+  randomTagButton.addEventListener('mouseleave', hideTooltip);
+  randomTagButton.addEventListener('focus', (e) => showTooltip(e.currentTarget, 'Select a random tag from the full taxonomy'));
+  randomTagButton.addEventListener('blur', hideTooltip);
+
+  clearTagsButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, 'Clear all selected tags'));
+  clearTagsButton.addEventListener('mouseleave', hideTooltip);
+  clearTagsButton.addEventListener('focus', (e) => showTooltip(e.currentTarget, 'Clear all selected tags'));
+  clearTagsButton.addEventListener('blur', hideTooltip);
+
   randomTagButton.addEventListener('click', () => {
     if (allPathsCache.length === 0) {
       console.warn('No tag paths available to select from.');
@@ -296,12 +308,14 @@ export function initGeneratorPanel(state) {
     chipsContainer.className = 'chip-container';
 
     ideas.forEach(idea => {
+      // Pass description instead of tooltip
       const chip = createChip({
         text: idea.text,
         category: idea.category,
-        tooltip: idea.description || '',
+        description: idea.description || '', // Use description field
         onDragStart: (event) => {
-          event.dataTransfer.setData('application/json', JSON.stringify(idea));
+          // Chip's dragstart handler now stringifies the data itself
+          // event.dataTransfer.setData('application/json', JSON.stringify(idea));
         },
         onDelete: () => {
           const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);

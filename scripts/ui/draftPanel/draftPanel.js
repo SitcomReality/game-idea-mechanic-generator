@@ -19,7 +19,6 @@ function getCategoryClassName(categoryName) {
   return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
-
 export function initDraftPanel(state) {
   const draftContainer = document.getElementById('draft-container');
   const cohereDraftBtn = document.getElementById('cohere-draft-btn');
@@ -27,9 +26,6 @@ export function initDraftPanel(state) {
   const exportDraftBtn = document.getElementById('export-draft-btn');
   const importDraftBtn = document.getElementById('import-draft-btn');
   const importDraftInput = document.getElementById('import-draft-input'); // Hidden file input
-
-  // Make container editable ONLY when showing raw HTML content
-  // draftContainer.contentEditable = true; // REMOVED - Will be set dynamically
 
   draftContainer.addEventListener('dragover', (event) => {
     event.preventDefault();
@@ -183,7 +179,6 @@ export function initDraftPanel(state) {
     reader.readAsText(file);
   });
 
-
   // --- Rendering based on state ---
   state.subscribe('designDraft', (draft) => {
     draftContainer.innerHTML = ''; // Clear existing content
@@ -192,7 +187,6 @@ export function initDraftPanel(state) {
     if (draft.length === 1 && draft[0]?.type === 'html') {
         draftContainer.contentEditable = true; // Enable editing for HTML block
         draftContainer.innerHTML = draft[0].text;
-        // Add a class to indicate it's raw HTML view vs categorized view? Optional.
         draftContainer.classList.add('html-view');
         draftContainer.classList.remove('categorized-view');
         return;
@@ -210,7 +204,8 @@ export function initDraftPanel(state) {
 
     // --- Group chips by category ---
     const groupedChips = {};
-    const chipItems = draft.filter(item => item.type === 'chip'); // Process only chips
+    // Ensure we only process valid chip-like items
+    const chipItems = draft.filter(item => item && typeof item === 'object' && item.text);
 
     chipItems.forEach((item, index) => {
         const category = getTopLevelCategory(item);
@@ -222,38 +217,39 @@ export function initDraftPanel(state) {
     });
 
     // --- Render categorized sections ---
-    // Sort categories alphabetically for consistent order
     const sortedCategories = Object.keys(groupedChips).sort();
 
     sortedCategories.forEach(categoryName => {
         const chipsInCategory = groupedChips[categoryName];
+        if (!chipsInCategory || chipsInCategory.length === 0) return; // Skip empty categories just in case
 
-        // Create <details> element for the section
         const detailsSection = document.createElement('details');
         detailsSection.className = 'draft-category-section';
-        detailsSection.open = true; // Default to open
+        detailsSection.open = true;
 
-        // Create <summary> element for the heading
         const summaryHeading = document.createElement('summary');
-        const categoryClassName = getCategoryClassName(categoryName); // Get class for styling
+        const categoryClassName = getCategoryClassName(categoryName);
         summaryHeading.className = `draft-category-summary ${categoryClassName}`;
         summaryHeading.textContent = `${categoryName} (${chipsInCategory.length})`;
 
-        // Create container for the chips within this section
         const chipsContainerDiv = document.createElement('div');
         chipsContainerDiv.className = 'chips-container';
 
         // Create and append each chip
         chipsInCategory.forEach(({ item, originalIndex }) => {
+            if (!item || typeof item.text === 'undefined') {
+                 console.warn("Skipping invalid item in draft:", item);
+                 return; // Skip rendering invalid items
+            }
             const chip = createChip({
                 text: item.text,
-                category: item.category, // Pass the original category for display/styling on chip itself
-                tooltip: item.description || '',
+                category: item.category,
+                description: item.description || '', // Use description
                 onDelete: () => {
-                    // Use the original index to remove from the state's draft array
                     state.removeFromDesignDraft(originalIndex);
-                }
-                // Dragging chips *within* the draft isn't supported in this structure easily
+                },
+                // Dragging chips *within* the draft isn't needed/supported here
+                onDragStart: null // Disable drag-start from within the draft panel? Maybe not.
             });
             chipsContainerDiv.appendChild(chip);
         });
@@ -265,6 +261,5 @@ export function initDraftPanel(state) {
   });
 
   // Initial render based on loaded state
-  state.notifyListeners('designDraft'); // Trigger initial render explicitly
-
+  state.notifyListeners('designDraft');
 }
