@@ -52,8 +52,13 @@ export function initBriefPanel(state) {
       const generatedMarkdown = await callLLMWithPrompt(filledPrompt);
       currentBriefMarkdown = generatedMarkdown; // Store the raw Markdown
 
+      // ---- Defensive Check for Marked ----
+      if (typeof window.marked !== 'function') {
+          throw new Error("Markdown parser (marked.js) not loaded or not a function.");
+      }
+      // ---- End Check ----
+
       // Parse Markdown to HTML using the global marked function from the CDN script
-      // Access it via window.marked
       const generatedHtml = window.marked.parse(currentBriefMarkdown);
 
       // Update the brief container display
@@ -65,12 +70,7 @@ export function initBriefPanel(state) {
     } catch (error) {
       console.error('Error generating brief:', error);
       // Show error message in the container
-      // Check if the error is the specific 'marked is not defined' error.
-      if (error instanceof ReferenceError && error.message.includes('marked is not defined')) {
-           briefContainer.innerHTML = `<div class="error-message">Error generating brief: Markdown library not loaded correctly. Please refresh.</div>`;
-      } else {
-           briefContainer.innerHTML = `<div class="error-message">Error generating brief: ${error.message}</div>`;
-      }
+      briefContainer.innerHTML = `<div class="error-message">Error generating brief: ${error.message}</div>`;
       currentBriefMarkdown = ''; // Clear markdown on error
       state.setDesignBrief(briefContainer.innerHTML); // Update state with error message
     } finally {
