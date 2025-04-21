@@ -2,6 +2,7 @@
 export function initState() {
   const DRAFT_STORAGE_KEY = 'gimg_designDraft';
   const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
+  const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; // New key
 
   // Load initial draft from localStorage
   const initialDraft = (() => {
@@ -18,13 +19,32 @@ export function initState() {
   // Load initial draft context setting from localStorage
   const initialUseDraftContext = (() => {
     try {
-        const storedValue = localStorage.getItem(DRAFT_CONTEXT_STORAGE_KEY);
-        // Default to true if not found or invalid
-        return storedValue === null ? true : JSON.parse(storedValue);
+      const storedValue = localStorage.getItem(DRAFT_CONTEXT_STORAGE_KEY);
+      // Default to true if not found or invalid
+      return storedValue === null ? true : JSON.parse(storedValue);
     } catch (error) {
-        console.error('Error loading draft context setting from localStorage:', error);
-        localStorage.removeItem(DRAFT_CONTEXT_STORAGE_KEY); // Clear invalid data
-        return true;
+      console.error('Error loading draft context setting from localStorage:', error);
+      localStorage.removeItem(DRAFT_CONTEXT_STORAGE_KEY); // Clear invalid data
+      return true;
+    }
+  })();
+
+  // Load initial brief options from localStorage
+  const initialBriefOptions = (() => {
+    const defaults = {
+      briefType: 'full',
+      includeTargetAudience: true,
+      includeTechnical: true,
+      includeFileStructure: false,
+      technicalContext: 'agnostic'
+    };
+    try {
+        const storedOptions = localStorage.getItem(BRIEF_OPTIONS_STORAGE_KEY);
+        return storedOptions ? { ...defaults, ...JSON.parse(storedOptions) } : defaults;
+    } catch (error) {
+        console.error('Error loading brief options from localStorage:', error);
+        localStorage.removeItem(BRIEF_OPTIONS_STORAGE_KEY); // Clear invalid data
+        return defaults;
     }
   })();
 
@@ -44,7 +64,8 @@ export function initState() {
     generatedIdeas: [],
     designDraft: initialDraft, // Load from storage
     designBrief: '',
-    useDraftContext: initialUseDraftContext // Load from storage, default true
+    useDraftContext: initialUseDraftContext, // Load from storage, default true
+    briefOptions: initialBriefOptions // Load from storage
   };
 
   // Subscription system
@@ -57,7 +78,8 @@ export function initState() {
     generatedIdeas: [],
     designDraft: [],
     designBrief: [],
-    useDraftContext: [] 
+    useDraftContext: [],
+    briefOptions: [] // New listener array
   };
 
   // Save draft to localStorage helper
@@ -72,11 +94,21 @@ export function initState() {
   // Save draft context setting to localStorage helper
   function saveDraftContextSettingToStorage(useContext) {
     try {
-        localStorage.setItem(DRAFT_CONTEXT_STORAGE_KEY, JSON.stringify(useContext));
+      localStorage.setItem(DRAFT_CONTEXT_STORAGE_KEY, JSON.stringify(useContext));
     } catch (error) {
-        console.error('Error saving draft context setting to localStorage:', error);
+      console.error('Error saving draft context setting to localStorage:', error);
     }
   }
+
+  // Save brief options setting to localStorage helper
+  function saveBriefOptionsToStorage(options) {
+    try {
+      localStorage.setItem(BRIEF_OPTIONS_STORAGE_KEY, JSON.stringify(options));
+    } catch (error) {
+      console.error('Error saving brief options to localStorage:', error);
+    }
+  }
+
 
   // Notify listeners of state changes
   function notifyListeners(key) {
@@ -96,7 +128,8 @@ export function initState() {
     getGeneratedIdeas: () => [..._state.generatedIdeas],
     getDesignDraft: () => [..._state.designDraft],
     getDesignBrief: () => _state.designBrief,
-    getUseDraftContext: () => _state.useDraftContext, 
+    getUseDraftContext: () => _state.useDraftContext,
+    getBriefOptions: () => ({ ..._state.briefOptions }), // Return a copy
 
     // Setters
     setTaxonomy: (taxonomy) => {
@@ -162,10 +195,20 @@ export function initState() {
       notifyListeners('designBrief');
     },
 
-    setUseDraftContext: (useContext) => { 
-        _state.useDraftContext = useContext;
-        saveDraftContextSettingToStorage(useContext); // Save to storage
-        notifyListeners('useDraftContext');
+    setUseDraftContext: (useContext) => {
+      _state.useDraftContext = useContext;
+      saveDraftContextSettingToStorage(useContext); // Save to storage
+      notifyListeners('useDraftContext');
+    },
+
+    setBriefOption: (optionKey, value) => {
+      if (_state.briefOptions.hasOwnProperty(optionKey)) {
+          _state.briefOptions[optionKey] = value;
+          saveBriefOptionsToStorage(_state.briefOptions); // Save on change
+          notifyListeners('briefOptions');
+      } else {
+          console.warn(`Attempted to set unknown brief option: ${optionKey}`);
+      }
     },
 
     // Subscription methods

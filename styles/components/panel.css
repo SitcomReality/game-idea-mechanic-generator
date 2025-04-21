@@ -75,6 +75,57 @@
   margin-top: var(--spacing-s);
 }
 
+/* Styles for Brief Generation Options */
+.brief-generation-options {
+  margin-bottom: var(--spacing-m);
+  padding: var(--spacing-s);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-m);
+  background-color: var(--bg-tertiary); /* Match tab content bg */
+}
+
+.brief-generation-options h4 {
+  font-size: 1rem;
+  margin-bottom: var(--spacing-m);
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: var(--spacing-xs);
+}
+
+.brief-generation-options .control-group {
+  margin-bottom: var(--spacing-s); /* Tighter spacing within options */
+}
+
+.brief-generation-options label {
+  display: block;
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+#brief-section-toggles {
+  display: flex;
+  flex-direction: column; /* Stack checkboxes vertically */
+  gap: var(--spacing-xs);
+}
+
+#brief-section-toggles label {
+  display: flex; /* Align checkbox and text */
+  align-items: center;
+  color: var(--text-primary); /* Make labels more prominent */
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+#brief-section-toggles input[type="checkbox"] {
+  margin-right: var(--spacing-xs);
+}
+
+#brief-type-select,
+#brief-tech-context-select {
+  width: 100%; /* Make selects full width */
+}
+
 /* Selected Tags Section Styles */
 #selected-tags-section {
   margin-top: var(--spacing-m);

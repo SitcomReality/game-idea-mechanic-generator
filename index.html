@@ -86,6 +86,37 @@
 
     <section id="brief-panel" class="panel">
       <h2>Design Brief</h2>
+      <div class="brief-generation-options">
+        <h4>Brief Options:</h4>
+        <div class="control-group brief-type-group">
+          <label>Brief Focus:</label>
+          <select id="brief-type-select">
+            <option value="full" selected>Full Game Design</option>
+            <option value="loop">Core Gameplay Loop</option>
+            <option value="mechanics">Mechanics Focus</option>
+            <option value="narrative">Narrative Outline</option>
+          </select>
+        </div>
+        <div class="control-group brief-sections-group">
+          <label>Include Sections:</label>
+          <div id="brief-section-toggles">
+            <label><input type="checkbox" data-section="targetAudience" checked> Target Audience</label>
+            <label><input type="checkbox" data-section="technical" checked> Technical Requirements</label>
+            <label><input type="checkbox" data-section="fileStructure"> File Structure Suggestion</label>
+            <!-- Add more optional sections as needed -->
+          </div>
+        </div>
+        <div class="control-group brief-tech-group">
+          <label>Technical Context:</label>
+          <select id="brief-tech-context-select">
+            <option value="agnostic" selected>Technology Agnostic</option>
+            <option value="web">Web (JS/HTML/CSS)</option>
+            <option value="console">Console</option>
+            <option value="mobile">Mobile</option>
+            <option value="desktop">Desktop (General)</option>
+          </select>
+        </div>
+      </div>
       <div id="brief-container" class="editable-container"></div>
       <div class="brief-controls">
         <button id="generate-brief-btn" class="primary-btn">Generate Brief</button>
