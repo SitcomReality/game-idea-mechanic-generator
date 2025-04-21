@@ -92,6 +92,16 @@ button.primary-btn:hover {
   background-color: var(--accent-secondary);
 }
 
+button.danger-btn {
+  background-color: var(--danger);
+  border-color: #ff7c7c;
+  font-weight: 600;
+}
+
+button.danger-btn:hover {
+  background-color: #d64c4c;
+}
+
 input, textarea, select {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
@@ -133,4 +143,3 @@ a:hover {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent-primary);
 }
-

@@ -5,11 +5,10 @@ import { COHERE_DRAFT } from '../../llm/prompts.js';
 export function initDraftPanel(state) {
   const draftContainer = document.getElementById('draft-container');
   const cohereDraftBtn = document.getElementById('cohere-draft-btn');
-  
-  // Make draft container editable
+  const clearDraftBtn = document.getElementById('clear-draft-btn'); 
+
   draftContainer.contentEditable = true;
   
-  // Set up drop zone for draggable items
   draftContainer.addEventListener('dragover', (event) => {
     event.preventDefault();
     draftContainer.classList.add('drag-over');
@@ -23,7 +22,6 @@ export function initDraftPanel(state) {
     event.preventDefault();
     draftContainer.classList.remove('drag-over');
     
-    // Get the dropped data
     const data = event.dataTransfer.getData('application/json');
     if (data) {
       try {
@@ -35,16 +33,11 @@ export function initDraftPanel(state) {
     }
   });
   
-  // Listen for content changes in the draft container
   draftContainer.addEventListener('input', () => {
-    // Extract text content from draft container
-    // This is a simplified approach - in a full implementation,
-    // you might want to preserve more structure
     const content = draftContainer.innerHTML;
     state.setDesignDraft([{ text: content, type: 'html' }]);
   });
   
-  // Set up Cohere Draft button
   cohereDraftBtn.addEventListener('click', async () => {
     cohereDraftBtn.disabled = true;
     cohereDraftBtn.textContent = 'Processing...';
@@ -52,28 +45,26 @@ export function initDraftPanel(state) {
     try {
       const draft = state.getDesignDraft();
       
-      // Extract text from draft items
       const draftText = draft.map(item => {
         if (item.type === 'html') {
-          return item.text;
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = item.text;
+          return tempDiv.textContent || tempDiv.innerText || '';
         }
         return `${item.category || ''}: ${item.text}`;
       }).join('\n');
       
-      // Call LLM to cohere the draft
       const promptTemplate = COHERE_DRAFT;
       const filledPrompt = promptTemplate.replace('{{draftContent}}', draftText);
       
       const coherentDraft = await callLLMWithPrompt(filledPrompt);
       
-      // Update the draft container with the coherent text
-      draftContainer.innerHTML = `<div class="coherent-draft">${coherentDraft}</div>`;
+      const coherentHtml = `<div class="coherent-draft">${coherentDraft.replace(/\n/g, '<br>')}</div>`;
+      draftContainer.innerHTML = coherentHtml;
       
-      // Update state
-      state.setDesignDraft([{ text: coherentDraft, type: 'html' }]);
+      state.setDesignDraft([{ text: coherentHtml, type: 'html' }]);
     } catch (error) {
       console.error('Error cohering draft:', error);
-      // Show error message
       const errorDiv = document.createElement('div');
       errorDiv.className = 'error-message';
       errorDiv.textContent = `Error: ${error.message}`;
@@ -83,46 +74,43 @@ export function initDraftPanel(state) {
       cohereDraftBtn.textContent = 'Cohere Draft';
     }
   });
+
+  clearDraftBtn.addEventListener('click', () => {
+    if (window.confirm('Are you sure you want to clear the entire design draft? This cannot be undone.')) {
+      state.setDesignDraft([]); 
+    }
+  });
   
-  // Render draft items from state
   state.subscribe('designDraft', (draft) => {
-    // If the draft is empty, show placeholder
-    if (draft.length === 0) {
-      draftContainer.innerHTML = '<p class="empty-state">Drag ideas here to build your design draft</p>';
-      return;
-    }
-    
-    // If user is currently editing, don't disturb them
-    if (document.activeElement === draftContainer) {
-      return;
-    }
-    
-    // Otherwise, render draft items
-    // This is a simplified approach - in a full implementation,
-    // you would want to preserve the structure and editability
-    draftContainer.innerHTML = '';
-    
-    draft.forEach(item => {
-      if (item.type === 'html') {
-        // If it's HTML content, insert it directly
-        draftContainer.innerHTML = item.text;
+    if (document.activeElement === draftContainer && draft.length > 0 && draft[0]?.type === 'html') {
+      if (draftContainer.innerHTML !== draft[0].text) {
       } else {
-        // Otherwise create a chip for each item
+        return; 
+      }
+    }
+
+    draftContainer.innerHTML = ''; 
+
+    if (draft.length === 0) {
+      draftContainer.innerHTML = '<p class="empty-state">Drag ideas here or start typing to build your design draft</p>';
+      return;
+    }
+    
+    draft.forEach((item, index) => {
+      if (item.type === 'html') {
+        draftContainer.innerHTML = item.text; 
+      } else {
         const chip = createChip({
           text: item.text,
           category: item.category,
           tooltip: item.description || '',
           onDelete: () => {
-            const updatedDraft = state.getDesignDraft().filter(i => i !== item);
-            state.setDesignDraft(updatedDraft);
+            state.removeFromDesignDraft(index); 
           }
         });
         draftContainer.appendChild(chip);
+        draftContainer.appendChild(document.createTextNode(' '));
       }
     });
   });
-  
-  // Initialize with empty state
-  state.setDesignDraft([]);
 }
-

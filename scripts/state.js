@@ -1,5 +1,19 @@
 // Central state management for the application
 export function initState() {
+  const DRAFT_STORAGE_KEY = 'gimg_designDraft';
+
+  // Load initial draft from localStorage
+  const initialDraft = (() => {
+    try {
+      const storedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
+      return storedDraft ? JSON.parse(storedDraft) : [];
+    } catch (error) {
+      console.error('Error loading design draft from localStorage:', error);
+      localStorage.removeItem(DRAFT_STORAGE_KEY); // Clear invalid data
+      return [];
+    }
+  })();
+
   // Private state
   const _state = {
     taxonomy: {},
@@ -14,7 +28,7 @@ export function initState() {
       systems: true
     },
     generatedIdeas: [],
-    designDraft: [],
+    designDraft: initialDraft, // Load from storage
     designBrief: ''
   };
   
@@ -30,6 +44,15 @@ export function initState() {
     designDraft: [],
     designBrief: []
   };
+
+  // Save draft to localStorage helper
+  function saveDraftToStorage(draft) {
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch (error) {
+      console.error('Error saving design draft to localStorage:', error);
+    }
+  }
   
   // Notify listeners of state changes
   function notifyListeners(key) {
@@ -99,16 +122,19 @@ export function initState() {
     
     addToDesignDraft: (item) => {
       _state.designDraft.push(item);
+      saveDraftToStorage(_state.designDraft); // Save to storage
       notifyListeners('designDraft');
     },
     
     removeFromDesignDraft: (index) => {
       _state.designDraft.splice(index, 1);
+      saveDraftToStorage(_state.designDraft); // Save to storage
       notifyListeners('designDraft');
     },
     
     setDesignDraft: (draft) => {
       _state.designDraft = draft;
+      saveDraftToStorage(_state.designDraft); // Save to storage
       notifyListeners('designDraft');
     },
     
@@ -132,4 +158,3 @@ export function initState() {
     }
   };
 }
-
