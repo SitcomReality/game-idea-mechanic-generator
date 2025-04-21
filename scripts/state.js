@@ -275,6 +275,8 @@ export function initState() {
       }
     },
 
+    // Internal function exposed for specific use cases (like initial render)
+    notifyListeners: notifyListeners, // <-- EXPOSE THE FUNCTION HERE
 
     // Subscription methods
     subscribe: (key, callback) => {
