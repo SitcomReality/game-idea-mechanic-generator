@@ -5,32 +5,37 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   chip.className = `chip ${category?.toLowerCase() || ''}`;
   chip.draggable = true;
 
-  // Drag handle
-  const dragHandle = document.createElement('span');
-  dragHandle.className = 'chip-drag-handle';
-  dragHandle.innerHTML = '⁞';
-  chip.appendChild(dragHandle);
+  // Container for category and label
+  const contentDiv = document.createElement('div');
+  contentDiv.className = 'chip-content';
 
   // Category label (if provided)
   if (category) {
     const categorySpan = document.createElement('span');
     categorySpan.className = 'chip-category';
-    categorySpan.textContent = category + ': ';
-    chip.appendChild(categorySpan);
+    categorySpan.textContent = category; // Just the category name
+    contentDiv.appendChild(categorySpan);
   }
 
   // Text label
   const label = document.createElement('span');
   label.className = 'chip-label';
   label.textContent = text;
-  chip.appendChild(label);
+  contentDiv.appendChild(label);
+
+  chip.appendChild(contentDiv);
+
+  // Container for action buttons (info, delete)
+  const actionsDiv = document.createElement('div');
+  actionsDiv.className = 'chip-actions';
 
   // Info button (if tooltip provided)
   if (tooltip) {
-    const infoBtn = document.createElement('span');
-    infoBtn.className = 'chip-info'; 
-    infoBtn.textContent = 'i';
-    infoBtn.dataset.tooltipText = tooltip; 
+    const infoBtn = document.createElement('button'); // Changed to button for accessibility
+    infoBtn.className = 'chip-info';
+    infoBtn.innerHTML = '<i>i</i>'; // Use italic 'i' or an icon font
+    infoBtn.setAttribute('aria-label', 'More information');
+    infoBtn.dataset.tooltipText = tooltip;
 
     // Add event listeners to show/hide the global tooltip
     infoBtn.addEventListener('mouseenter', (event) => {
@@ -39,7 +44,7 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
     infoBtn.addEventListener('mouseleave', () => {
       hideTooltip();
     });
-    // Add focus/blur for accessibility if needed
+    // Add focus/blur for accessibility
     infoBtn.addEventListener('focus', (event) => {
        showTooltip(event.currentTarget, tooltip);
     });
@@ -47,26 +52,40 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
        hideTooltip();
     });
 
-
-    chip.appendChild(infoBtn);
+    actionsDiv.appendChild(infoBtn);
   }
 
   // Delete button
   if (onDelete) {
-    const deleteBtn = document.createElement('span');
+    const deleteBtn = document.createElement('button'); // Changed to button for accessibility
     deleteBtn.className = 'chip-delete';
-    deleteBtn.textContent = '✕';
-    deleteBtn.addEventListener('click', onDelete);
-    chip.appendChild(deleteBtn);
+    deleteBtn.innerHTML = '&times;'; // Use HTML entity for 'x'
+    deleteBtn.setAttribute('aria-label', 'Delete item');
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent drag start when clicking delete
+        onDelete();
+    });
+    actionsDiv.appendChild(deleteBtn);
   }
+
+  // Only add actions container if it has children
+  if (actionsDiv.hasChildNodes()) {
+      chip.appendChild(actionsDiv);
+  }
+
 
   // Drag events
   chip.addEventListener('dragstart', (event) => {
+    // Don't start drag if clicking on buttons inside chip
+    if (event.target.closest('.chip-actions')) {
+      event.preventDefault();
+      return;
+    }
     chip.classList.add('dragging');
     if (onDragStart) {
       onDragStart(event);
     }
-    hideTooltip(); 
+    hideTooltip();
   });
 
   chip.addEventListener('dragend', () => {

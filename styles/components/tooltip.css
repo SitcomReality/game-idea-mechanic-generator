@@ -1,6 +1,6 @@
 #global-tooltip {
-  position: fixed; 
-  visibility: hidden; 
+  position: fixed;
+  visibility: hidden;
   opacity: 0;
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
@@ -10,12 +10,12 @@
   font-size: 0.85rem;
   line-height: 1.4;
   text-align: left;
-  z-index: 1001; 
-  max-width: 300px; 
+  z-index: 1001;
+  max-width: 600px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-  pointer-events: none; 
-  white-space: pre-wrap; 
+  pointer-events: none;
+  white-space: pre-wrap;
 }
 
 #global-tooltip.visible {
@@ -29,8 +29,8 @@
   border-width: 6px;
   border-style: solid;
   border-color: var(--border-color) transparent transparent transparent;
-  bottom: -12px; 
-  left: calc(50% - 6px); 
+  bottom: -12px;
+  left: calc(50% - 6px);
 }
 
 #global-tooltip.tooltip-bottom::after {

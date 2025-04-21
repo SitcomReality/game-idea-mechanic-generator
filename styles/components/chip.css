@@ -1,15 +1,17 @@
 .chip {
   display: inline-flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
   background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 0 var(--spacing-s) 0 var(--spacing-xs);
+  border-radius: var(--border-radius-m);
+  padding: var(--spacing-xs) var(--spacing-s);
   margin: var(--spacing-xs);
-  font-size: 0.9rem;
   user-select: none;
   transition: all 0.2s ease;
   cursor: grab;
+  position: relative;
+  min-width: 100px;
 }
 
 .chip:hover {
@@ -23,49 +25,70 @@
 }
 
 .chip-drag-handle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  margin-right: var(--spacing-xs);
-  opacity: 0.7;
-  cursor: grab;
+  display: none;
+}
+
+.chip-content {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: var(--spacing-xs);
+  width: 100%;
+}
+
+.chip-category {
+  color: var(--accent-tertiary);
+  font-weight: normal;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
 }
 
 .chip-label {
-  margin-right: var(--spacing-xs);
+  font-weight: bold;
+  font-size: 0.95rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.chip-actions {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  display: flex;
+  gap: 2px;
 }
 
 .chip-delete, .chip-info {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
-  font-size: 0.8rem;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  margin-left: var(--spacing-xs);
   cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .chip-delete {
   background-color: transparent;
   color: var(--text-secondary);
+  font-size: 0.85rem;
 }
 
 .chip-delete:hover {
-  color: var(--danger);
+  color: var(--bg-tertiary);
+  background-color: var(--danger);
 }
 
 .chip-info {
   background-color: var(--text-secondary);
   color: var(--bg-primary);
   font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .chip-info:hover {
   background-color: var(--accent-primary);
+  color: var(--text-primary);
 }
 
 .chip-container {
@@ -74,23 +97,7 @@
   padding: var(--spacing-xs);
   border: 1px dashed var(--border-color);
   border-radius: var(--border-radius-m);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
 }
-
-.chip-category {
-  color: var(--accent-tertiary);
-  font-weight: 600;
-  margin-right: var(--spacing-xs);
-}
-
-.chip.mechanic {
-  border-color: #5d8fd9;
-}
-
-.chip.theme {
-  border-color: #d95d8f;
-}
-
-.chip.setting {
-  border-color: #8fd95d;
-}
-
