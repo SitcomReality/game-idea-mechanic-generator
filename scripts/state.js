@@ -33,7 +33,6 @@ export function initState() {
   const _state = {
     taxonomy: {},
     selectedTags: new Set(),
-    generatorSource: 'wordlists', // 'wordlists', 'llm', or 'hybrid'
     termQuantity: 3,
     customText: '',
     enabledSections: {
@@ -47,19 +46,18 @@ export function initState() {
     designBrief: '',
     useDraftContext: initialUseDraftContext // Load from storage, default true
   };
-  
+
   // Subscription system
   const listeners = {
     taxonomy: [],
     selectedTags: [],
-    generatorSource: [],
     termQuantity: [],
     customText: [],
     enabledSections: [],
     generatedIdeas: [],
     designDraft: [],
     designBrief: [],
-    useDraftContext: [] // Add listener key
+    useDraftContext: [] 
   };
 
   // Save draft to localStorage helper
@@ -79,114 +77,112 @@ export function initState() {
         console.error('Error saving draft context setting to localStorage:', error);
     }
   }
-  
+
   // Notify listeners of state changes
   function notifyListeners(key) {
     if (listeners[key]) {
       listeners[key].forEach(listener => listener(_state[key]));
     }
   }
-  
+
   // Public API
   return {
     // Getters
     getTaxonomy: () => _state.taxonomy,
     getSelectedTags: () => new Set(_state.selectedTags),
-    getGeneratorSource: () => _state.generatorSource,
     getTermQuantity: () => _state.termQuantity,
     getCustomText: () => _state.customText,
     getEnabledSections: () => ({..._state.enabledSections}),
     getGeneratedIdeas: () => [..._state.generatedIdeas],
     getDesignDraft: () => [..._state.designDraft],
     getDesignBrief: () => _state.designBrief,
-    getUseDraftContext: () => _state.useDraftContext, // Add getter
-    
+    getUseDraftContext: () => _state.useDraftContext, 
+
     // Setters
     setTaxonomy: (taxonomy) => {
       _state.taxonomy = taxonomy;
       notifyListeners('taxonomy');
     },
-    
+
     setSelectedTags: (tags) => {
       _state.selectedTags = new Set(tags);
       notifyListeners('selectedTags');
     },
-    
+
     addSelectedTag: (tag) => {
       _state.selectedTags.add(tag);
       notifyListeners('selectedTags');
     },
-    
+
     removeSelectedTag: (tag) => {
       _state.selectedTags.delete(tag);
       notifyListeners('selectedTags');
     },
-    
-    setGeneratorSource: (source) => {
-      _state.generatorSource = source;
-      notifyListeners('generatorSource');
-    },
-    
+
     setTermQuantity: (quantity) => {
       _state.termQuantity = quantity;
       notifyListeners('termQuantity');
     },
-    
+
     setCustomText: (text) => {
       _state.customText = text;
       notifyListeners('customText');
     },
-    
+
     setEnabledSection: (section, enabled) => {
       _state.enabledSections[section] = enabled;
       notifyListeners('enabledSections');
     },
-    
+
     setGeneratedIdeas: (ideas) => {
       _state.generatedIdeas = ideas;
       notifyListeners('generatedIdeas');
     },
-    
+
     addToDesignDraft: (item) => {
       _state.designDraft.push(item);
       saveDraftToStorage(_state.designDraft); // Save to storage
       notifyListeners('designDraft');
     },
-    
+
     removeFromDesignDraft: (index) => {
       _state.designDraft.splice(index, 1);
       saveDraftToStorage(_state.designDraft); // Save to storage
       notifyListeners('designDraft');
     },
-    
+
     setDesignDraft: (draft) => {
       _state.designDraft = draft;
       saveDraftToStorage(_state.designDraft); // Save to storage
       notifyListeners('designDraft');
     },
-    
+
     setDesignBrief: (brief) => {
       _state.designBrief = brief;
       notifyListeners('designBrief');
     },
 
-    setUseDraftContext: (useContext) => { // Add setter
+    setUseDraftContext: (useContext) => { 
         _state.useDraftContext = useContext;
         saveDraftContextSettingToStorage(useContext); // Save to storage
         notifyListeners('useDraftContext');
     },
-    
+
     // Subscription methods
     subscribe: (key, callback) => {
       if (listeners[key]) {
         listeners[key].push(callback);
         // Immediately invoke with current state
-        callback(_state[key]);
+        // Check if _state[key] exists before calling callback
+        if (_state.hasOwnProperty(key)) {
+          callback(_state[key]);
+        }
         // Return unsubscribe function
         return () => {
           listeners[key] = listeners[key].filter(fn => fn !== callback);
         };
       }
+      console.warn(`Attempted to subscribe to non-existent state key: ${key}`);
       return () => {}; // No-op if key doesn't exist
     }
   };

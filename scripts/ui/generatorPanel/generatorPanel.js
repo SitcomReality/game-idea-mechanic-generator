@@ -1,8 +1,6 @@
 import { renderTagTree } from '../tagTree.js';
 import { createChip } from '../chip.js';
-import { generateIdeasFromWordlists } from '../../generators/wordlistGenerator.js';
 import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
-import { generateIdeasHybrid } from '../../generators/hybridGenerator.js';
 
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
@@ -10,41 +8,33 @@ export function initGeneratorPanel(state) {
   const termQuantityInput = document.getElementById('term-quantity');
   const termQuantityDisplay = document.getElementById('term-quantity-display');
   const customTextInput = document.getElementById('custom-text');
-  const useDraftContextCheckbox = document.getElementById('use-draft-context'); 
+  const useDraftContextCheckbox = document.getElementById('use-draft-context');
   const sectionToggleContainer = document.getElementById('section-toggle-container');
   const generateButton = document.getElementById('generate-ideas-btn');
   const ideasContainer = document.getElementById('generated-ideas-container');
-  const sourceButtons = panel.querySelectorAll('[data-source]');
 
-  // Render tag tree from taxonomy
   state.subscribe('taxonomy', (taxonomy) => {
     renderTagTree(tagTreeContainer, taxonomy, state);
   });
 
-  // Set up term quantity slider
   termQuantityInput.addEventListener('input', () => {
     const value = termQuantityInput.value;
     termQuantityDisplay.textContent = value;
     state.setTermQuantity(parseInt(value));
   });
 
-  // Set up custom text input
   customTextInput.addEventListener('input', () => {
     state.setCustomText(customTextInput.value);
   });
 
-  // Set up draft context checkbox
   useDraftContextCheckbox.addEventListener('change', () => {
     state.setUseDraftContext(useDraftContextCheckbox.checked);
   });
 
-  // Subscribe to draft context state changes
   state.subscribe('useDraftContext', (useContext) => {
     useDraftContextCheckbox.checked = useContext;
   });
 
-
-  // Setup section toggles
   const sections = {
     mechanics: 'Mechanics',
     themes: 'Themes',
@@ -74,56 +64,22 @@ export function initGeneratorPanel(state) {
     sectionToggleContainer.appendChild(toggleDiv);
   });
 
-  // Set up source buttons
-  sourceButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      // Remove active class from all buttons
-      sourceButtons.forEach(btn => btn.classList.remove('active'));
-      // Add active class to clicked button
-      button.classList.add('active');
-      // Update state
-      state.setGeneratorSource(button.dataset.source);
-    });
-  });
-
-  // Subscribe to source changes
-  state.subscribe('generatorSource', (source) => {
-    sourceButtons.forEach(btn => {
-      btn.classList.toggle('active', btn.dataset.source === source);
-    });
-    // Disable/enable draft context checkbox based on source
-    useDraftContextCheckbox.disabled = source === 'wordlists';
-  });
-
-  // Set up generate button
   generateButton.addEventListener('click', async () => {
     generateButton.disabled = true;
     generateButton.textContent = 'Generating...';
 
     try {
-      const source = state.getGeneratorSource();
       const quantity = state.getTermQuantity();
       const customText = state.getCustomText();
       const selectedTags = state.getSelectedTags();
       const enabledSections = state.getEnabledSections();
       const designDraft = state.getDesignDraft();
-      const useDraftContext = state.getUseDraftContext(); 
+      const useDraftContext = state.getUseDraftContext();
 
       let ideas = [];
-      // Only pass draft context if the checkbox is checked and source is LLM/Hybrid
-      const draftContextForLLM = (source === 'llm' || source === 'hybrid') && useDraftContext ? designDraft : null;
+      const draftContextForLLM = useDraftContext ? designDraft : null;
 
-      switch (source) {
-        case 'wordlists':
-          ideas = await generateIdeasFromWordlists(selectedTags, quantity, enabledSections);
-          break;
-        case 'llm':
-          ideas = await generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, draftContextForLLM); 
-          break;
-        case 'hybrid':
-          ideas = await generateIdeasHybrid(selectedTags, quantity, customText, enabledSections, draftContextForLLM); 
-          break;
-      }
+      ideas = await generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, draftContextForLLM);
 
       state.setGeneratedIdeas(ideas);
     } catch (error) {
@@ -135,25 +91,23 @@ export function initGeneratorPanel(state) {
     }
   });
 
-  // Render generated ideas
   state.subscribe('generatedIdeas', (ideas) => {
     ideasContainer.innerHTML = '';
 
-    if (ideas.length === 0) {
+    if (!ideas || ideas.length === 0) {
       ideasContainer.innerHTML = '<p class="empty-state">Generate ideas to see results here</p>';
       return;
     }
 
-    // Group ideas by category
     const groupedIdeas = ideas.reduce((acc, idea) => {
-      if (!acc[idea.category]) {
-        acc[idea.category] = [];
+      const category = idea.category || 'Uncategorized';
+      if (!acc[category]) {
+        acc[category] = [];
       }
-      acc[idea.category].push(idea);
+      acc[category].push(idea);
       return acc;
     }, {});
 
-    // Create container for each category
     Object.entries(groupedIdeas).forEach(([category, categoryIdeas]) => {
       const categoryDiv = document.createElement('div');
       categoryDiv.className = 'idea-category';
@@ -170,7 +124,7 @@ export function initGeneratorPanel(state) {
           text: idea.text,
           category: idea.category,
           tooltip: idea.description || '',
-          onDragStart: (event) => { 
+          onDragStart: (event) => {
             event.dataTransfer.setData('application/json', JSON.stringify(idea));
           },
           onDelete: () => {
@@ -187,9 +141,6 @@ export function initGeneratorPanel(state) {
     });
   });
 
-  // Initialize with empty state
   state.setGeneratedIdeas([]);
-  // Initialize checkbox state and disable if needed
   state.setUseDraftContext(state.getUseDraftContext());
-  useDraftContextCheckbox.disabled = state.getGeneratorSource() === 'wordlists';
 }

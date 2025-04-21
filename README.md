@@ -1,11 +1,11 @@
 # Game-Idea & Mechanic Generator (GIMG)
 
-A dark-themed, single-screen web application that allows game designers to generate, curate, and refine game ideas and mechanics with maximum granularity and control.
+A dark-themed, single-screen web application that allows game designers to generate, curate, and refine game ideas and mechanics with maximum granularity and control using a Language Model (LLM).
 
 ## Features
 
 - **Three-step workflow**:
-  1. **Generate Ideas**: Pull random terms from wordlists OR use LLM; result is editable.
+  1. **Generate Ideas**: Use an LLM to generate terms based on selected tags and options; results are editable.
   2. **Populate Design Draft**: Send edited text to LLM for coherence; user drags/keeps pieces.
   3. **Generate Design Brief**: Send draft to LLM for polished, developer-ready doc.
 
@@ -13,6 +13,7 @@ A dark-themed, single-screen web application that allows game designers to gener
 - **Dark/"emo" aesthetic**, compact layout, minimal cognitive load.
 - **User-selectable content**: Toggle which output sections appear.
 - **Draggable DOM chips**: All user-selectable tags, phrases, and sentences rendered as independent draggable elements.
+- **Draft Context**: Use the current design draft to influence new idea generation.
 
 ## Setup
 
@@ -28,7 +29,6 @@ A dark-themed, single-screen web application that allows game designers to gener
 
 ## Customization
 
-- Add new wordlists to the `/data/wordlists` directory
 - Modify the taxonomy in `/data/taxonomy.json`
 - Adjust LLM prompts in `/scripts/llm/prompts.js`
 

@@ -26,8 +26,8 @@ async function initApp() {
     initDraftPanel(state);
     initBriefPanel(state);
 
-    // Set default source
-    state.setGeneratorSource('wordlists');
+    // Set default source - Removed as LLM is the only source now
+    // state.setGeneratorSource('wordlists');
 
     console.log('GIMG initialized successfully');
   } catch (error) {
