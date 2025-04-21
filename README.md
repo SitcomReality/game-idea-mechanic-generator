@@ -29,7 +29,7 @@ A dark-themed, single-screen web application that allows game designers to gener
 
 ## Customization
 
-- Modify the taxonomy in `/data/taxonomy.json`
+- Modify the taxonomy by editing the JavaScript files in `/scripts/data/taxonomy/`
 - Adjust LLM prompts in `/scripts/llm/prompts.js`
 
 ## Contributing
@@ -41,4 +41,3 @@ A dark-themed, single-screen web application that allows game designers to gener
 ## License
 
 MIT
-

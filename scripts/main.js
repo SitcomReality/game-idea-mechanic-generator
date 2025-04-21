@@ -2,7 +2,7 @@ import { initState } from './state.js';
 import { initGeneratorPanel } from './ui/generatorPanel/generatorPanel.js';
 import { initDraftPanel } from './ui/draftPanel/draftPanel.js';
 import { initBriefPanel } from './ui/briefPanel/briefPanel.js';
-import { fetchTaxonomy } from './data/taxonomyLoader.js';
+import { loadTaxonomy } from './data/taxonomyLoader.js';
 import { initTooltipManager } from './ui/tooltipManager.js';
 
 // Set current year in footer
@@ -18,7 +18,7 @@ async function initApp() {
     initTooltipManager();
 
     // Load taxonomy data
-    const taxonomy = await fetchTaxonomy();
+    const taxonomy = await loadTaxonomy();
     state.setTaxonomy(taxonomy);
 
     // Initialize UI components
