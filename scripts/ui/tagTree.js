@@ -13,6 +13,7 @@ export function renderTagTree(container, taxonomy, state, basePath = []) {
 
     const hasChildren = node && typeof node === 'object' && Object.keys(node).length > 0;
     const currentItemName = path[path.length - 1];
+    const nodePath = [...path].join('.'); // Generate full path here
 
     if (hasChildren) {
       // Create toggle element for expandable nodes
@@ -26,9 +27,7 @@ export function renderTagTree(container, taxonomy, state, basePath = []) {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.className = 'tag-tree-checkbox';
-
-      // Generate full path for this node
-      const nodePath = [...path].join('.');
+      checkbox.dataset.tagPath = nodePath; // Store the path on the element
 
       // Check if this node is selected
       checkbox.checked = state.getSelectedTags().has(nodePath);
@@ -58,8 +57,8 @@ export function renderTagTree(container, taxonomy, state, basePath = []) {
 
       // Add expand/collapse functionality
       toggleDiv.addEventListener('click', (e) => {
-        // Prevent toggling when clicking directly on the checkbox
-        if (e.target !== checkbox) {
+        // Prevent toggling when clicking directly on the checkbox or its label span
+        if (e.target !== checkbox && e.target !== nameSpan) {
           toggleDiv.classList.toggle('expanded');
           childrenDiv.classList.toggle('expanded');
         }
@@ -81,9 +80,7 @@ export function renderTagTree(container, taxonomy, state, basePath = []) {
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
       checkbox.className = 'tag-tree-checkbox';
-
-      // Generate full path for this node
-      const nodePath = [...path].join('.');
+      checkbox.dataset.tagPath = nodePath; // Store the path on the element
 
       // Check if this node is selected
       checkbox.checked = state.getSelectedTags().has(nodePath);

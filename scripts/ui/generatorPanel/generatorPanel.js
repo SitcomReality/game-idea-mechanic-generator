@@ -4,7 +4,6 @@ import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
 
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
-  // Containers for the new tab structure
   const tabButtonsContainer = document.getElementById('taxonomy-tab-buttons');
   const tabContentContainer = document.getElementById('taxonomy-tab-content');
   const termQuantityInput = document.getElementById('term-quantity');
@@ -14,6 +13,7 @@ export function initGeneratorPanel(state) {
   const sectionToggleContainer = document.getElementById('section-toggle-container');
   const generateButton = document.getElementById('generate-ideas-btn');
   const ideasContainer = document.getElementById('generated-ideas-container');
+  const selectedTagsListContainer = document.getElementById('selected-tags-list'); // Get the new container
 
   let firstTab = true; // Flag to make the first tab active initially
 
@@ -59,7 +59,67 @@ export function initGeneratorPanel(state) {
         firstTab = false;
       }
     });
+    // After rendering trees, ensure checkboxes are synced with initial state
+    syncTagTreeCheckboxes(state.getSelectedTags());
   });
+
+  // Function to render the list of selected tags
+  function renderSelectedTagsList(selectedTagsSet) {
+    selectedTagsListContainer.innerHTML = ''; // Clear previous list
+
+    if (selectedTagsSet.size === 0) {
+      selectedTagsListContainer.innerHTML = '<li class="empty-state">No tags selected</li>';
+      return;
+    }
+
+    const sortedTags = Array.from(selectedTagsSet).sort(); // Sort alphabetically
+
+    sortedTags.forEach(tagPath => {
+      const listItem = document.createElement('li');
+      listItem.className = 'selected-tag-item';
+
+      const pathSpan = document.createElement('span');
+      pathSpan.className = 'selected-tag-path';
+      pathSpan.textContent = tagPath;
+
+      const deselectBtn = document.createElement('button');
+      deselectBtn.className = 'selected-tag-deselect-btn';
+      deselectBtn.setAttribute('aria-label', `Deselect ${tagPath}`);
+      deselectBtn.innerHTML = '&times;'; // Use HTML entity for 'x'
+      deselectBtn.title = `Deselect ${tagPath}`;
+      deselectBtn.addEventListener('click', () => {
+        state.removeSelectedTag(tagPath);
+      });
+
+      listItem.appendChild(pathSpan);
+      listItem.appendChild(deselectBtn);
+      selectedTagsListContainer.appendChild(listItem);
+    });
+  }
+
+  // Function to update the checkboxes in the tag trees based on state
+  function syncTagTreeCheckboxes(selectedTagsSet) {
+    // Find all checkboxes within the tab content container
+    const allCheckboxes = tabContentContainer.querySelectorAll('.tag-tree-checkbox');
+
+    allCheckboxes.forEach(checkbox => {
+      const checkboxPath = checkbox.dataset.tagPath;
+      if (checkboxPath) {
+        // Only update if the checked status is different from the state
+        const shouldBeChecked = selectedTagsSet.has(checkboxPath);
+        if (checkbox.checked !== shouldBeChecked) {
+            checkbox.checked = shouldBeChecked;
+        }
+      }
+    });
+  }
+
+  // Subscribe to selectedTags changes to update the list AND sync checkboxes
+  state.subscribe('selectedTags', (selectedTagsSet) => {
+    renderSelectedTagsList(selectedTagsSet);
+    syncTagTreeCheckboxes(selectedTagsSet);
+  });
+
 
   termQuantityInput.addEventListener('input', () => {
     const value = termQuantityInput.value;
@@ -185,6 +245,9 @@ export function initGeneratorPanel(state) {
     });
   });
 
+  // Initialize components with current state
   state.setGeneratedIdeas([]);
   state.setUseDraftContext(state.getUseDraftContext());
+  // Initial render of the selected tags list
+  renderSelectedTagsList(state.getSelectedTags());
 }
