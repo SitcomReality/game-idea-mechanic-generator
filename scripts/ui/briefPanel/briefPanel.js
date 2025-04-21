@@ -1,28 +1,35 @@
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { MAKE_BRIEF } from '../../llm/prompts.js';
+import { marked } from 'marked'; // Import the marked library
 
 export function initBriefPanel(state) {
   const briefContainer = document.getElementById('brief-container');
   const generateBriefBtn = document.getElementById('generate-brief-btn');
   const copyBriefBtn = document.getElementById('copy-brief-btn');
   const downloadBriefBtn = document.getElementById('download-brief-btn');
-  
+
+  let currentBriefMarkdown = ''; // Store the last generated Markdown content
+
   // Make brief container editable
   briefContainer.contentEditable = true;
-  
+
   // Listen for content changes in the brief container
   briefContainer.addEventListener('input', () => {
+    // Update the state with the current HTML content for persistence
     state.setDesignBrief(briefContainer.innerHTML);
+    // Note: After editing, currentBriefMarkdown might be out of sync.
+    // Copy/Download will still use the *last generated* markdown.
   });
-  
+
   // Set up Generate Brief button
   generateBriefBtn.addEventListener('click', async () => {
     generateBriefBtn.disabled = true;
     generateBriefBtn.textContent = 'Generating...';
-    
+    briefContainer.innerHTML = '<p>Generating brief...</p>'; // Placeholder
+
     try {
       const draft = state.getDesignDraft();
-      
+
       // Extract text from draft items
       let draftText = '';
       if (draft.length > 0) {
@@ -34,93 +41,120 @@ export function initBriefPanel(state) {
         } else {
           draftText = draft.map(item => `${item.category || ''}: ${item.text}`).join('\n');
         }
+      } else {
+          briefContainer.innerHTML = '<p class="error-message">Cannot generate brief from empty draft.</p>';
+           throw new Error('Draft is empty'); // Prevent LLM call with empty content
       }
-      
-      // Call LLM to generate the brief
+
+      // Call LLM to generate the brief in Markdown
       const promptTemplate = MAKE_BRIEF;
       const filledPrompt = promptTemplate.replace('{{draftContent}}', draftText);
-      
-      const generatedBrief = await callLLMWithPrompt(filledPrompt);
-      
-      // Update the brief container
-      briefContainer.innerHTML = generatedBrief;
-      
-      // Update state
-      state.setDesignBrief(generatedBrief);
+
+      const generatedMarkdown = await callLLMWithPrompt(filledPrompt);
+      currentBriefMarkdown = generatedMarkdown; // Store the raw Markdown
+
+      // Parse Markdown to HTML
+      const generatedHtml = marked.parse(currentBriefMarkdown);
+
+      // Update the brief container display
+      briefContainer.innerHTML = generatedHtml;
+
+      // Update state with the generated HTML for persistence
+      state.setDesignBrief(generatedHtml);
+
     } catch (error) {
       console.error('Error generating brief:', error);
-      // Show error message
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.textContent = `Error: ${error.message}`;
-      briefContainer.appendChild(errorDiv);
+      // Show error message in the container
+      briefContainer.innerHTML = `<div class="error-message">Error generating brief: ${error.message}</div>`;
+      currentBriefMarkdown = ''; // Clear markdown on error
+      state.setDesignBrief(briefContainer.innerHTML); // Update state with error message
     } finally {
       generateBriefBtn.disabled = false;
       generateBriefBtn.textContent = 'Generate Brief';
     }
   });
-  
-  // Set up Copy button
+
+  // Set up Copy button to copy the Markdown
   copyBriefBtn.addEventListener('click', () => {
-    const brief = state.getDesignBrief();
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(brief)
+    if (!currentBriefMarkdown) {
+        alert('No brief generated yet, or generation failed.');
+        return;
+    }
+
+    navigator.clipboard.writeText(currentBriefMarkdown)
       .then(() => {
-        // Show success message
+        const originalText = copyBriefBtn.textContent;
         copyBriefBtn.textContent = 'Copied!';
         setTimeout(() => {
-          copyBriefBtn.textContent = 'Copy';
+          copyBriefBtn.textContent = originalText;
         }, 2000);
       })
       .catch(err => {
-        console.error('Failed to copy:', err);
+        console.error('Failed to copy Markdown:', err);
+         const originalText = copyBriefBtn.textContent;
         copyBriefBtn.textContent = 'Failed';
         setTimeout(() => {
-          copyBriefBtn.textContent = 'Copy';
+          copyBriefBtn.textContent = originalText;
         }, 2000);
+        alert('Failed to copy Markdown to clipboard.');
       });
   });
-  
-  // Set up Download button
+
+  // Set up Download button to download the Markdown
   downloadBriefBtn.addEventListener('click', () => {
-    const brief = state.getDesignBrief();
-    
+     if (!currentBriefMarkdown) {
+        alert('No brief generated yet, or generation failed.');
+        return;
+    }
     // Create a blob and download it
-    const blob = new Blob([brief], { type: 'text/markdown' });
+    const blob = new Blob([currentBriefMarkdown], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    
+
     const a = document.createElement('a');
     a.href = url;
     a.download = 'game-design-brief.md';
     document.body.appendChild(a);
     a.click();
-    
+
     // Clean up
     setTimeout(() => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 0);
   });
-  
-  // Render brief from state
-  state.subscribe('designBrief', (brief) => {
-    // If the brief is empty, show placeholder
-    if (!brief) {
-      briefContainer.innerHTML = '<p class="empty-state">Generate a design brief from your draft</p>';
-      return;
-    }
-    
+
+  // Render brief from state (which stores HTML after generation/edit)
+  state.subscribe('designBrief', (briefHtml) => {
     // If user is currently editing, don't disturb them
     if (document.activeElement === briefContainer) {
       return;
     }
-    
-    // Otherwise, update the brief container
-    briefContainer.innerHTML = brief;
-  });
-  
-  // Initialize with empty state
-  state.setDesignBrief('');
-}
 
+     // If the brief is empty or contains only placeholder/error messages, show placeholder
+    if (!briefHtml || briefHtml.includes('empty-state') || briefHtml.includes('error-message') || briefHtml.trim() === '<p>Generating brief...</p>') {
+       if (!briefHtml || briefHtml.trim() === '') { // Only show placeholder if truly empty
+            briefContainer.innerHTML = '<p class="empty-state">Generate a design brief from your draft, or edit here.</p>';
+       } else {
+            // Keep existing content (likely placeholder or error)
+             briefContainer.innerHTML = briefHtml;
+       }
+       currentBriefMarkdown = ''; // Ensure markdown is cleared if state is empty/error
+    } else {
+        // Otherwise, update the brief container with the HTML from the state
+        briefContainer.innerHTML = briefHtml;
+        // Note: We don't re-parse here, as the state already holds HTML.
+        // We also don't know the original markdown if it was loaded from storage after edits.
+        // `currentBriefMarkdown` only holds the *last generated* version in this session.
+    }
+  });
+
+  // Initialize with current state value (might be from localStorage)
+  const initialBrief = state.getDesignBrief();
+  if (initialBrief) {
+      briefContainer.innerHTML = initialBrief;
+      // We can't reliably reconstruct currentBriefMarkdown from stored HTML
+  } else {
+      briefContainer.innerHTML = '<p class="empty-state">Generate a design brief from your draft, or edit here.</p>';
+      state.setDesignBrief(briefContainer.innerHTML); // Ensure initial state reflects placeholder
+  }
+}
