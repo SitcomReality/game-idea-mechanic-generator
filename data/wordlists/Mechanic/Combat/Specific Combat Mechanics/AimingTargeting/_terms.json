@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Lock-On Targeting",
+    "description": "Allows the player to focus attacks on a specific enemy."
+  },
+  {
+    "text": "Weak Point Targeting",
+    "description": "Aiming for specific vulnerable parts of an enemy deals extra damage or triggers effects."
+  }
+]

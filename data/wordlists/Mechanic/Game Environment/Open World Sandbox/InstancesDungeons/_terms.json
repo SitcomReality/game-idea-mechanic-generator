@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Raids",
+    "description": "Large-scale, challenging dungeons designed for multiple players working together."
+  },
+  {
+    "text": "Procedurally Generated Dungeons",
+    "description": "Dungeon layouts and contents are randomized each time they are entered."
+  }
+]

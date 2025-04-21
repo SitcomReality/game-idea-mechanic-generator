@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Dialogue Options",
+    "description": "Charisma unlocks special dialogue choices or improves success chance in conversations."
+  },
+  {
+    "text": "NPC Loyalty/Likability",
+    "description": "Higher Charisma makes companions or other NPCs more loyal or helpful."
+  }
+]

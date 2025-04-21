@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Max Health Increase",
+    "description": "Constitution directly increases the character's total hit points."
+  },
+  {
+    "text": "Resistance to Status Effects",
+    "description": "Higher Constitution provides resistance against poisons, diseases, or other negative effects."
+  }
+]
