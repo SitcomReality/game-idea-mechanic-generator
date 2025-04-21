@@ -1,5 +1,6 @@
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { MAKE_BRIEF } from '../../llm/prompts.js';
+import { marked } from 'marked'; // Import marked using the import map
 
 export function initBriefPanel(state) {
   const briefContainer = document.getElementById('brief-container');
@@ -52,14 +53,15 @@ export function initBriefPanel(state) {
       const generatedMarkdown = await callLLMWithPrompt(filledPrompt);
       currentBriefMarkdown = generatedMarkdown; // Store the raw Markdown
 
-      // ---- Defensive Check for Marked ----
-      if (typeof window.marked !== 'function') {
-          throw new Error("Markdown parser (marked.js) not loaded or not a function.");
+      // ---- Check if marked is available ----
+      if (typeof marked !== 'function') {
+          // This check is less likely to fail now with the import, but good practice
+          throw new Error("Markdown parser (marked.js) failed to load or is not a function.");
       }
       // ---- End Check ----
 
-      // Parse Markdown to HTML using the global marked function from the CDN script
-      const generatedHtml = window.marked.parse(currentBriefMarkdown);
+      // Parse Markdown to HTML using the imported marked function
+      const generatedHtml = marked.parse(currentBriefMarkdown);
 
       // Update the brief container display
       briefContainer.innerHTML = generatedHtml;
