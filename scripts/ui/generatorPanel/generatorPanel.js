@@ -2,10 +2,34 @@ import { renderTagTree } from '../tagTree.js';
 import { createChip } from '../chip.js';
 import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
 
+// Helper function to recursively flatten the taxonomy into a list of selectable tag paths
+function getAllTagPaths(taxonomy, currentPath = []) {
+  let paths = [];
+  if (!taxonomy || typeof taxonomy !== 'object') {
+    return paths; // Should not happen with valid taxonomy, but good safeguard
+  }
+
+  Object.entries(taxonomy).forEach(([key, value]) => {
+    const newPath = [...currentPath, key];
+    const pathString = newPath.join('.');
+
+    // Add the current path as it represents a selectable node (category or leaf)
+    paths.push(pathString);
+
+    // If value is an object, recurse into children
+    if (typeof value === 'object' && Object.keys(value).length > 0) {
+      paths = paths.concat(getAllTagPaths(value, newPath));
+    }
+  });
+
+  return paths;
+}
+
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
   const tabButtonsContainer = document.getElementById('taxonomy-tab-buttons');
   const tabContentContainer = document.getElementById('taxonomy-tab-content');
+  const randomTagButton = document.getElementById('random-tag-btn'); // Get the random button
   const termQuantityInput = document.getElementById('term-quantity');
   const termQuantityDisplay = document.getElementById('term-quantity-display');
   const customTextInput = document.getElementById('custom-text');
@@ -16,12 +40,17 @@ export function initGeneratorPanel(state) {
   const selectedTagsListContainer = document.getElementById('selected-tags-list'); // Get the new container
 
   let firstTab = true; // Flag to make the first tab active initially
+  let allPathsCache = []; // Cache for tag paths
 
   state.subscribe('taxonomy', (taxonomy) => {
     // Clear existing tabs
     tabButtonsContainer.innerHTML = '';
     tabContentContainer.innerHTML = '';
     firstTab = true; // Reset for re-renders
+
+    // Regenerate the cache of all tag paths
+    allPathsCache = getAllTagPaths(taxonomy);
+    // console.log("All Tag Paths:", allPathsCache); // For debugging
 
     // Create tabs for each top-level category
     Object.entries(taxonomy).forEach(([categoryName, categoryData]) => {
@@ -120,7 +149,6 @@ export function initGeneratorPanel(state) {
     syncTagTreeCheckboxes(selectedTagsSet);
   });
 
-
   termQuantityInput.addEventListener('input', () => {
     const value = termQuantityInput.value;
     termQuantityDisplay.textContent = value;
@@ -193,6 +221,18 @@ export function initGeneratorPanel(state) {
       generateButton.disabled = false;
       generateButton.textContent = 'Generate Ideas';
     }
+  });
+
+  // Add event listener for the random tag button
+  randomTagButton.addEventListener('click', () => {
+    if (allPathsCache.length === 0) {
+      console.warn('No tag paths available to select from.');
+      return;
+    }
+    const randomIndex = Math.floor(Math.random() * allPathsCache.length);
+    const randomTagPath = allPathsCache[randomIndex];
+    console.log(`Randomly selecting: ${randomTagPath}`); // For debugging
+    state.addSelectedTag(randomTagPath); // Add the tag to the state
   });
 
   state.subscribe('generatedIdeas', (ideas) => {
