@@ -29,13 +29,30 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
     infoBtn.className = 'chip-info';
     infoBtn.textContent = 'i';
     
-    // Add tooltip
+    // Add tooltip and event listener
     const tooltipEl = document.createElement('div');
     tooltipEl.className = 'tooltip-content';
     tooltipEl.textContent = tooltip;
-    infoBtn.appendChild(tooltipEl);
     
+    // Initially hide tooltip
+    tooltipEl.style.display = 'none';
+    
+    infoBtn.appendChild(tooltipEl);
+
+    // Toggle tooltip on click event
+    infoBtn.addEventListener('click', (e) => {
+      tooltipEl.style.display = tooltipEl.style.display === 'none' ? 'block' : 'none';
+      e.stopPropagation(); // Prevent bubbling
+    });
+
     chip.appendChild(infoBtn);
+    
+    // Close tooltip when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!infoBtn.contains(e.target)) {
+        tooltipEl.style.display = 'none';
+      }
+    });
   }
   
   // Delete button
@@ -61,4 +78,3 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   
   return chip;
 }
-
