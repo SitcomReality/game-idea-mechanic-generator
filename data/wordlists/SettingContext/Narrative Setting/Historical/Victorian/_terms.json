@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Gaslamp Fantasy",
+    "description": "A Victorian setting infused with magical or fantastical elements."
+  },
+  {
+    "text": "Industrial Revolution",
+    "description": "Focus on the societal and technological changes brought by industrialization."
+  }
+]

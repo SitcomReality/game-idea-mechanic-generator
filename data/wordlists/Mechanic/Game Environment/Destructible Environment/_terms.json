@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Structural Weak Points",
+    "description": "Specific points on structures that, when destroyed, cause significant collapse or damage."
+  },
+  {
+    "text": "Terrain Deformation",
+    "description": "Explosions or actions permanently alter the shape of the ground or environment."
+  }
+]
