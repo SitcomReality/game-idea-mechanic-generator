@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Experience Points (XP)",
+    "description": "Points earned for completing tasks, defeating enemies, or discovering locations, used to level up."
+  },
+  {
+    "text": "Level Ups",
+    "description": "Reaching a new level grants stat increases, new abilities, or other character improvements."
+  }
+]

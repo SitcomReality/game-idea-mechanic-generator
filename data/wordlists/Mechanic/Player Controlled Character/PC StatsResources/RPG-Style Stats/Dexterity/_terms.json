@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Accuracy",
+    "description": "Dexterity influences the chance to hit with ranged or finesse weapons."
+  },
+  {
+    "text": "Evasion",
+    "description": "Higher Dexterity increases the chance to dodge incoming attacks."
+  }
+]

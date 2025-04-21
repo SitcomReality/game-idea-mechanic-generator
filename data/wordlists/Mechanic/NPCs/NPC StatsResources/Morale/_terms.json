@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "NPC Morale",
+    "description": "A stat affecting NPC behavior, potentially causing them to flee, surrender, or fight harder."
+  },
+  {
+    "text": "Group Morale",
+    "description": "The morale of individual NPCs influences the overall morale of their group or faction."
+  }
+]

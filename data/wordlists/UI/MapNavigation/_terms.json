@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Mini-Map",
+    "description": "A small, constantly visible map showing the immediate surroundings."
+  },
+  {
+    "text": "Waypoints/Markers",
+    "description": "Player-placed or quest-designated markers on the map to guide navigation."
+  }
+]
