@@ -1,0 +1,10 @@
+[
+  {
+    "text": "Turret Mode",
+    "description": "NPC can enter a stationary attack mode with enhanced combat capabilities."
+  },
+  {
+    "text": "Feint Attack",
+    "description": "NPC pretends a false attack to lure target into vulnerable position."
+  }
+]

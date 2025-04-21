@@ -1,0 +1,10 @@
+[
+  {
+    "text": "Wander",
+    "description": "NPC has a primary motivation to patrol designated paths."
+  },
+  {
+    "text": "Defend Territory",
+    "description": "NPC seeks to protect a specific area from intruders."
+  }
+]
