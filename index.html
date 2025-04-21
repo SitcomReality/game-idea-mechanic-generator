@@ -24,10 +24,10 @@
   <header>
     <h1>Game-Idea & Mechanic Generator</h1>
   </header>
-  
+
   <main class="app-container">
     <section id="generator-panel" class="panel">
-      <h2>Idea Generator</h2>
+      <h2>Generator Options</h2>
       <div id="tag-tree-container"></div>
       <div class="source-controls">
         <div class="control-group">
@@ -38,29 +38,33 @@
             <button data-source="hybrid">Hybrid</button>
           </div>
         </div>
-        
+
         <div class="control-group">
           <label for="term-quantity">Terms:</label>
           <input type="range" id="term-quantity" min="1" max="10" value="3">
           <span id="term-quantity-display">3</span>
         </div>
-        
+
         <div class="control-group">
           <label for="custom-text">Custom Text:</label>
           <textarea id="custom-text" placeholder="Enter your own terms or ideas here..."></textarea>
         </div>
-        
+
         <div class="section-toggles">
           <h3>Include Sections:</h3>
           <div id="section-toggle-container"></div>
         </div>
-        
+
         <button id="generate-ideas-btn" class="primary-btn">Generate Ideas</button>
       </div>
-      
+      <!-- Generated ideas container moved -->
+    </section>
+
+    <section id="generated-ideas-panel" class="panel">
+      <h2>Generated Ideas</h2>
       <div id="generated-ideas-container" class="results-container"></div>
     </section>
-    
+
     <section id="draft-panel" class="panel">
       <h2>Design Draft</h2>
       <div id="draft-container" class="editable-container"></div>
@@ -68,7 +72,7 @@
         <button id="cohere-draft-btn" class="primary-btn">Cohere Draft</button>
       </div>
     </section>
-    
+
     <section id="brief-panel" class="panel">
       <h2>Design Brief</h2>
       <div id="brief-container" class="editable-container"></div>
@@ -79,11 +83,10 @@
       </div>
     </section>
   </main>
-  
+
   <footer>
     <p>Game-Idea & Mechanic Generator • <span id="year"></span></p>
   </footer>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
-

@@ -21,35 +21,63 @@ footer {
 
 .app-container {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr; 
+  grid-template-rows: auto auto; 
   gap: var(--spacing-m);
   padding: var(--spacing-m);
   height: 100%;
-  overflow: hidden;
+  overflow: hidden; 
+  grid-template-areas:
+    "generator ideas draft"
+    "brief brief brief";
+}
+
+#generator-panel {
+  grid-area: generator;
+  overflow-y: auto; 
+}
+
+#generated-ideas-panel {
+  grid-area: ideas;
+  overflow-y: auto; 
+}
+
+#draft-panel {
+  grid-area: draft;
+  overflow-y: auto; 
+}
+
+#brief-panel {
+  grid-area: brief; 
+  overflow-y: auto; 
 }
 
 @media (max-width: 1200px) {
   .app-container {
-    grid-template-columns: 1fr 1fr;
-  }
-  
-  #brief-panel {
-    grid-column: span 2;
+    grid-template-columns: 1fr 1fr; 
+    grid-template-rows: auto auto auto; 
+    grid-template-areas:
+      "generator ideas"
+      "draft draft"
+      "brief brief";
   }
 }
 
 @media (max-width: 768px) {
   .app-container {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
+    grid-template-columns: 1fr; 
+    grid-template-rows: auto auto auto auto; 
+    grid-template-areas:
+      "generator"
+      "ideas"
+      "draft"
+      "brief";
+    overflow-y: auto; 
   }
-  
-  #brief-panel {
-    grid-column: auto;
-  }
-  
-  .panel {
-    max-height: none;
+
+  #generator-panel, #generated-ideas-panel, #draft-panel, #brief-panel {
+    overflow-y: visible;
+    max-height: none; 
   }
 }
 
@@ -64,16 +92,17 @@ footer {
 
 .results-container {
   min-height: 200px;
-  margin-top: var(--spacing-m);
+  flex-grow: 1; 
+  overflow-y: auto; 
 }
 
 .editable-container {
-  min-height: 300px;
+  min-height: 200px; 
   background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-m);
   padding: var(--spacing-m);
   margin-bottom: var(--spacing-m);
   overflow-y: auto;
+  flex-grow: 1; 
 }
-
