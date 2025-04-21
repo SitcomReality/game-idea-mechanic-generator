@@ -92,6 +92,7 @@ export function initGeneratorPanel(state) {
       const customText = state.getCustomText();
       const selectedTags = state.getSelectedTags();
       const enabledSections = state.getEnabledSections();
+      const designDraft = state.getDesignDraft();
 
       let ideas = [];
 
@@ -100,10 +101,10 @@ export function initGeneratorPanel(state) {
           ideas = await generateIdeasFromWordlists(selectedTags, quantity, enabledSections);
           break;
         case 'llm':
-          ideas = await generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections);
+          ideas = await generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, designDraft);
           break;
         case 'hybrid':
-          ideas = await generateIdeasHybrid(selectedTags, quantity, customText, enabledSections);
+          ideas = await generateIdeasHybrid(selectedTags, quantity, customText, enabledSections, designDraft);
           break;
       }
 
@@ -153,11 +154,9 @@ export function initGeneratorPanel(state) {
           category: idea.category,
           tooltip: idea.description || '',
           onDragStart: () => {
-            // Store idea data for draft panel
             event.dataTransfer.setData('application/json', JSON.stringify(idea));
           },
           onDelete: () => {
-            // Remove idea from state
             const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);
             state.setGeneratedIdeas(updatedIdeas);
           }
