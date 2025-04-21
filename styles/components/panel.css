@@ -49,9 +49,12 @@
   overflow-y: auto;
 }
 
+/* Remove old container style */
+/*
 .source-controls {
   margin-bottom: var(--spacing-m);
 }
+*/
 
 /* Add spacing around the draft context checkbox */
 #use-draft-context-label {
@@ -67,6 +70,26 @@
   width: 100%;
   min-height: 100px;
   resize: vertical;
+}
+
+/* New container for bottom actions */
+.generator-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-m);
+  margin-top: var(--spacing-m); /* Add some space above */
+}
+
+.term-quantity-group {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-s);
+  margin-bottom: 0; /* Remove default bottom margin */
+}
+
+.term-quantity-group label {
+    margin-bottom: 0; /* Override default block label margin */
 }
 
 .draft-controls, .brief-controls {

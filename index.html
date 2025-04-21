@@ -33,39 +33,39 @@
         <div id="taxonomy-tab-buttons"></div>
         <div id="taxonomy-tab-content"></div>
       </div>
-      <div class="source-controls">
-        <div class="control-group">
+
+      <div id="selected-tags-section">
+        <h4>Selected Tags:</h4>
+        <div id="selected-tags-list-container">
+          <ul id="selected-tags-list">
+            <!-- Selected tags will be listed here -->
+          </ul>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="custom-text">Custom Text:</label>
+        <textarea id="custom-text" placeholder="Enter your own terms or ideas here..."></textarea>
+      </div>
+
+      <div class="section-toggles">
+        <h3>Include Sections:</h3>
+        <div id="section-toggle-container"></div>
+      </div>
+
+      <div class="control-group">
+        <label for="use-draft-context" id="use-draft-context-label">
+          <input type="checkbox" id="use-draft-context" checked>
+          Use Draft For Context
+        </label>
+      </div>
+
+      <div class="generator-actions">
+        <div class="control-group term-quantity-group">
           <label for="term-quantity">Terms:</label>
           <input type="range" id="term-quantity" min="1" max="10" value="3">
           <span id="term-quantity-display">3</span>
         </div>
-
-        <div class="control-group">
-          <label for="custom-text">Custom Text:</label>
-          <textarea id="custom-text" placeholder="Enter your own terms or ideas here..."></textarea>
-        </div>
-
-        <div class="control-group">
-          <label for="use-draft-context" id="use-draft-context-label">
-            <input type="checkbox" id="use-draft-context" checked>
-            Use Draft Context for LLM/Hybrid
-          </label>
-        </div>
-
-        <div class="section-toggles">
-          <h3>Include Sections:</h3>
-          <div id="section-toggle-container"></div>
-        </div>
-
-        <div id="selected-tags-section">
-          <h4>Selected Tags:</h4>
-          <div id="selected-tags-list-container">
-            <ul id="selected-tags-list">
-              <!-- Selected tags will be listed here -->
-            </ul>
-          </div>
-        </div>
-
         <button id="generate-ideas-btn" class="primary-btn">Generate Ideas</button>
       </div>
     </section>
