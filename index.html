@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="styles/components/modal.css">
   <link rel="stylesheet" href="styles/components/tagTree.css">
   <link rel="stylesheet" href="styles/components/panel.css">
+  <link rel="stylesheet" href="styles/components/tabs.css">
   <script type="importmap">
     {
       "imports": {
@@ -28,7 +29,10 @@
   <main class="app-container">
     <section id="generator-panel" class="panel">
       <h2>Generator Options</h2>
-      <div id="tag-tree-container"></div>
+      <div id="taxonomy-tabs-container">
+        <div id="taxonomy-tab-buttons"></div>
+        <div id="taxonomy-tab-content"></div>
+      </div>
       <div class="source-controls">
         <div class="control-group">
           <label for="term-quantity">Terms:</label>
@@ -42,7 +46,7 @@
         </div>
 
         <div class="control-group">
-          <label for="use-draft-context">
+          <label for="use-draft-context" id="use-draft-context-label">
             <input type="checkbox" id="use-draft-context" checked>
             Use Draft Context for LLM/Hybrid
           </label>
@@ -55,7 +59,6 @@
 
         <button id="generate-ideas-btn" class="primary-btn">Generate Ideas</button>
       </div>
-      <!-- Generated ideas container moved -->
     </section>
 
     <section id="generated-ideas-panel" class="panel">

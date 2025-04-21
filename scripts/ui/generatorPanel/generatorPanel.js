@@ -4,7 +4,9 @@ import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
 
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
-  const tagTreeContainer = document.getElementById('tag-tree-container');
+  // Containers for the new tab structure
+  const tabButtonsContainer = document.getElementById('taxonomy-tab-buttons');
+  const tabContentContainer = document.getElementById('taxonomy-tab-content');
   const termQuantityInput = document.getElementById('term-quantity');
   const termQuantityDisplay = document.getElementById('term-quantity-display');
   const customTextInput = document.getElementById('custom-text');
@@ -13,8 +15,50 @@ export function initGeneratorPanel(state) {
   const generateButton = document.getElementById('generate-ideas-btn');
   const ideasContainer = document.getElementById('generated-ideas-container');
 
+  let firstTab = true; // Flag to make the first tab active initially
+
   state.subscribe('taxonomy', (taxonomy) => {
-    renderTagTree(tagTreeContainer, taxonomy, state);
+    // Clear existing tabs
+    tabButtonsContainer.innerHTML = '';
+    tabContentContainer.innerHTML = '';
+    firstTab = true; // Reset for re-renders
+
+    // Create tabs for each top-level category
+    Object.entries(taxonomy).forEach(([categoryName, categoryData]) => {
+      // Create Tab Button
+      const tabButton = document.createElement('button');
+      tabButton.className = 'tab-button';
+      tabButton.textContent = categoryName;
+      tabButton.dataset.targetTab = categoryName.replace(/\s+/g, '-').toLowerCase(); // Create a unique ID
+      tabButtonsContainer.appendChild(tabButton);
+
+      // Create Tab Content Panel
+      const tabContent = document.createElement('div');
+      tabContent.className = 'tab-content';
+      tabContent.id = tabButton.dataset.targetTab;
+
+      // Render the tag tree for this category inside the tab content
+      renderTagTree(tabContent, categoryData, state, [categoryName]); // Pass the category name as the initial path
+      tabContentContainer.appendChild(tabContent);
+
+      // Add click listener to switch tabs
+      tabButton.addEventListener('click', () => {
+        // Deactivate all buttons and hide all content
+        tabButtonsContainer.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        tabContentContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // Activate the clicked button and show its content
+        tabButton.classList.add('active');
+        tabContent.classList.add('active');
+      });
+
+      // Activate the first tab by default
+      if (firstTab) {
+        tabButton.classList.add('active');
+        tabContent.classList.add('active');
+        firstTab = false;
+      }
+    });
   });
 
   termQuantityInput.addEventListener('input', () => {

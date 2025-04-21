@@ -1,9 +1,4 @@
 .tag-tree {
-  background-color: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-m);
-  padding: var(--spacing-s);
-  margin-bottom: var(--spacing-m);
   max-height: 300px;
   overflow-y: auto;
 }
@@ -54,10 +49,3 @@
 .tag-tree-label:hover {
   color: var(--accent-tertiary);
 }
-
-.tag-path {
-  color: var(--text-secondary);
-  font-size: 0.8rem;
-  margin-left: var(--spacing-s);
-}
-
