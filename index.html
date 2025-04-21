@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles/components/tagTree.css">
   <link rel="stylesheet" href="styles/components/panel.css">
   <link rel="stylesheet" href="styles/components/tabs.css">
+  <link rel="stylesheet" href="styles/components/imagePanel.css">
   <script type="importmap">
     {
       "imports": {
@@ -127,6 +128,54 @@
         <button id="generate-brief-btn" class="primary-btn">Generate Brief</button>
         <button id="copy-brief-btn">Copy</button>
         <button id="download-brief-btn">Download .md</button>
+      </div>
+    </section>
+
+    <section id="image-panel" class="panel">
+      <h2>Concept Art</h2>
+      <div class="image-generation-options">
+        <h4>Image Generation Options:</h4>
+        <div class="control-group source-select-group">
+          <label>Image Prompt Source:</label>
+          <div class="radio-group">
+            <label><input type="radio" name="image-source" value="ideas" checked> Generated Ideas</label>
+            <label><input type="radio" name="image-source" value="draft"> Design Draft</label>
+            <label><input type="radio" name="image-source" value="brief"> Design Brief</label>
+          </div>
+        </div>
+        <div class="control-group aspect-ratio-group">
+          <label for="aspect-ratio-select">Aspect Ratio:</label>
+          <select id="aspect-ratio-select">
+            <option value="1:1" selected>1:1 (Square)</option>
+            <option value="16:9">16:9 (Widescreen)</option>
+            <option value="9:16">9:16 (Portrait)</option>
+            <option value="4:3">4:3 (Standard)</option>
+            <option value="3:4">3:4 (Tall)</option>
+            <option value="21:9">21:9 (Cinematic)</option>
+            <option value="9:21">9:21 (Tall Cinematic)</option>
+            <option value="3:2">3:2</option>
+            <option value="2:3">2:3</option>
+          </select>
+        </div>
+        <div class="control-group image-style-group">
+          <label for="image-style-input">Optional Style Modifiers:</label>
+          <input type="text" id="image-style-input" placeholder="e.g., pixel art, watercolor, cinematic lighting...">
+        </div>
+      </div>
+      <div class="image-generation-action">
+        <button id="generate-image-btn" class="primary-btn">Generate Image</button>
+      </div>
+      <div id="image-display-area">
+        <div id="image-placeholder" class="image-placeholder">
+          <span id="image-placeholder-text">Click "Generate Image" to create concept art</span>
+          <div id="image-loading-spinner" class="loading-spinner" style="display: none;"></div>
+        </div>
+        <img id="generated-image" src="" alt="Generated Concept Art" style="display: none;" />
+      </div>
+      <div id="image-prompt-display-area" style="display: none;">
+        <h4>Generated Prompt:</h4>
+        <p id="image-prompt-text"></p>
+        <button id="copy-image-prompt-btn" class="small-btn">Copy Prompt</button>
       </div>
     </section>
   </main>

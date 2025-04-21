@@ -2,6 +2,7 @@ import { initState } from './state.js';
 import { initGeneratorPanel } from './ui/generatorPanel/generatorPanel.js';
 import { initDraftPanel } from './ui/draftPanel/draftPanel.js';
 import { initBriefPanel } from './ui/briefPanel/briefPanel.js';
+import { initImagePanel } from './ui/imagePanel/imagePanel.js';
 import { loadTaxonomy } from './data/taxonomyLoader.js';
 import { initTooltipManager } from './ui/tooltipManager.js';
 
@@ -25,6 +26,7 @@ async function initApp() {
     initGeneratorPanel(state);
     initDraftPanel(state);
     initBriefPanel(state);
+    initImagePanel(state); // Initialize the new panel
 
     // Set default source - Removed as LLM is the only source now
     // state.setGeneratorSource('wordlists');

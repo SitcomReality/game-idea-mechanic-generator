@@ -7,12 +7,13 @@ main.app-container {
   flex-grow: 1;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto auto auto;
   gap: var(--spacing-m);
   padding: var(--spacing-m);
   grid-template-areas:
     "generator ideas draft"
-    "brief brief brief";
+    "brief brief brief"
+    "image image image";
 }
 
 footer {
@@ -52,15 +53,21 @@ footer {
   overflow-y: auto;
 }
 
+#image-panel {
+  grid-area: image;
+  overflow-y: auto;
+}
+
 @media (max-width: 1200px) {
   main.app-container {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr auto auto;
+    grid-template-rows: auto auto auto auto;
     height: auto;
     grid-template-areas:
       "generator ideas"
       "draft draft"
-      "brief brief";
+      "brief brief"
+      "image image";
     overflow: visible;
   }
 }
@@ -68,13 +75,14 @@ footer {
 @media (max-width: 768px) {
   main.app-container {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto auto;
+    grid-template-rows: auto auto auto auto auto;
     height: auto;
     grid-template-areas:
       "generator"
       "ideas"
       "draft"
-      "brief";
+      "brief"
+      "image";
     overflow-y: visible;
   }
 }

@@ -33,3 +33,23 @@ For each element, provide:
 Focus on elements that could create interesting gameplay experiences, narrative potential, or unique player interactions.
 Aim for a mix of conventional and innovative ideas.
 `;
+
++export const GENERATE_IMAGE_PROMPT = `
++Based on the following game concept description (which could be raw ideas, a design draft, or a full brief), generate a concise and visually descriptive prompt suitable for an AI image generator (like DALL-E, Midjourney, Stable Diffusion).
++
++**Game Concept Description:**
++---
++{{conceptDescription}}
++---
++
++**Optional Style Modifiers:** {{styleModifiers}}
++
++**Instructions:**
++- Create a prompt that captures the essence of the game's visuals, mood, and key elements described.
++- Focus on nouns, adjectives, and visual details. Include core themes, setting, character descriptions, or key actions if present.
++- Keep the prompt relatively brief (ideally under 100 words, often much shorter).
++- Incorporate the optional style modifiers if provided, appending them naturally (e.g., ", pixel art", ", watercolor style", ", cinematic lighting").
++- Do NOT include instructions like "Generate an image..." or quote the input text.
++- Output *only* the generated image prompt text, and nothing else.
++`;
+

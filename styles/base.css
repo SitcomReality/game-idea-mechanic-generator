@@ -97,6 +97,11 @@ button {
   transition: all 0.2s ease;
 }
 
+button.small-btn {
+  padding: var(--spacing-xs) var(--spacing-s);
+  font-size: 0.8rem;
+}
+
 button:hover {
   background-color: var(--bg-tertiary-light); /* Lighter hover */
   border-color: var(--border-color);
