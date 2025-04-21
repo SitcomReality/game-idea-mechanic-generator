@@ -1,57 +1,50 @@
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-/* Make sure this is positioned relative to the parent .tooltip */
-.tooltip .tooltip-content {
-  visibility: hidden;
-  width: 200px;
+#global-tooltip {
+  position: fixed; 
+  visibility: hidden; 
+  opacity: 0;
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
-  text-align: center;
   border-radius: var(--border-radius-m);
-  padding: var(--spacing-s);
+  padding: var(--spacing-s) var(--spacing-m);
   border: 1px solid var(--border-color);
-  
-  /* Position the tooltip */
-  position: absolute;
-  z-index: 100;
-  bottom: 125%; 
-  left: 50%;
-  transform: translateX(-50%);
-  
-  /* Fade in */
-  opacity: 0;
-  transition: opacity 0.3s;
-  
-  /* Text alignment */
-  text-align: left;
   font-size: 0.85rem;
   line-height: 1.4;
-  
-  /* Shadow */
+  text-align: left;
+  z-index: 1001; 
+  max-width: 300px; 
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-  
-  /* Prevent pointer events on the tooltip itself by default */
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
   pointer-events: none; 
+  white-space: pre-wrap; 
 }
 
-/* Arrow styling */
-.tooltip .tooltip-content::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: var(--border-color) transparent transparent transparent;
-}
-
-/* Show tooltip on hover of the element with the .tooltip class */
-.tooltip:hover .tooltip-content {
+#global-tooltip.visible {
   visibility: visible;
   opacity: 1;
-  pointer-events: auto; /* Allow interaction if needed */
+}
+
+#global-tooltip::after {
+  content: "";
+  position: absolute;
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--border-color) transparent transparent transparent;
+  bottom: -12px; 
+  left: calc(50% - 6px); 
+}
+
+#global-tooltip.tooltip-bottom::after {
+  border-color: transparent transparent var(--border-color) transparent;
+  top: -12px;
+  bottom: auto;
+}
+
+#global-tooltip.tooltip-top::after {
+  border-color: var(--border-color) transparent transparent transparent;
+  bottom: -12px;
+  top: auto;
+}
+
+#global-tooltip.no-arrow::after {
+  display: none;
 }

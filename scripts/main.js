@@ -3,6 +3,7 @@ import { initGeneratorPanel } from './ui/generatorPanel/generatorPanel.js';
 import { initDraftPanel } from './ui/draftPanel/draftPanel.js';
 import { initBriefPanel } from './ui/briefPanel/briefPanel.js';
 import { fetchTaxonomy } from './data/taxonomyLoader.js';
+import { initTooltipManager } from './ui/tooltipManager.js';
 
 // Set current year in footer
 document.getElementById('year').textContent = new Date().getFullYear();
@@ -13,18 +14,21 @@ const state = initState();
 // Initialize UI components when data is loaded
 async function initApp() {
   try {
+    // Initialize tooltip manager first
+    initTooltipManager();
+
     // Load taxonomy data
     const taxonomy = await fetchTaxonomy();
     state.setTaxonomy(taxonomy);
-    
+
     // Initialize UI components
     initGeneratorPanel(state);
     initDraftPanel(state);
     initBriefPanel(state);
-    
+
     // Set default source
     state.setGeneratorSource('wordlists');
-    
+
     console.log('GIMG initialized successfully');
   } catch (error) {
     console.error('Failed to initialize GIMG:', error);
@@ -41,4 +45,3 @@ async function initApp() {
 
 // Start the application
 initApp();
-
