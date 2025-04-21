@@ -1,6 +1,5 @@
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { MAKE_BRIEF } from '../../llm/prompts.js';
-import marked from 'marked'; // Corrected: Use default import for marked
 
 export function initBriefPanel(state) {
   const briefContainer = document.getElementById('brief-container');
@@ -53,7 +52,7 @@ export function initBriefPanel(state) {
       const generatedMarkdown = await callLLMWithPrompt(filledPrompt);
       currentBriefMarkdown = generatedMarkdown; // Store the raw Markdown
 
-      // Parse Markdown to HTML
+      // Parse Markdown to HTML using the global marked function
       const generatedHtml = marked.parse(currentBriefMarkdown);
 
       // Update the brief container display
