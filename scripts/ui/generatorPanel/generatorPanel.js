@@ -28,11 +28,22 @@ function getAllTagPaths(taxonomy, currentPath = []) {
 // Helper function to create CSS-friendly class names from TOP-LEVEL categories
 function getCategoryClassName(categoryName) {
   if (!categoryName) return 'category-default';
+  // Normalize common short names first
+  if (categoryName === 'Theme') categoryName = 'Narrative Theme';
+  if (categoryName === 'Setting') categoryName = 'Setting/Context';
   // Split by '.' and take the first part (top-level category)
   const topLevelCategory = categoryName.split('.')[0];
   // Convert to lowercase and replace spaces/slashes with hyphens
   return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
+
+// Helper function to normalize category names
+function normalizeCategoryName(categoryName) {
+  if (categoryName === 'Theme') return 'Narrative Theme';
+  if (categoryName === 'Setting') return 'Setting/Context';
+  return categoryName || 'Uncategorized'; // Provide a default if null/undefined
+}
+
 
 export function initGeneratorPanel(state) {
   const panel = document.getElementById('generator-panel');
@@ -225,7 +236,15 @@ export function initGeneratorPanel(state) {
 
       ideas = await generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, draftContextForLLM);
 
-      state.setGeneratedIdeas(ideas);
+      // --- NORMALIZATION STEP ---
+      const normalizedIdeas = ideas.map(idea => ({
+        ...idea,
+        category: normalizeCategoryName(idea.category) // Normalize the category name
+      }));
+      // --- END NORMALIZATION ---
+
+      state.setGeneratedIdeas(normalizedIdeas); // Set state with normalized ideas
+
     } catch (error) {
       console.error('Error generating ideas:', error);
       ideasContainer.innerHTML = `<div class="error-message">Error generating ideas: ${error.message}</div>`;
@@ -276,9 +295,10 @@ export function initGeneratorPanel(state) {
     ideas.forEach(idea => {
       const chip = createChip({
         text: idea.text,
-        category: idea.category, // Pass the full category path here
+        category: idea.category, // Use the (already normalized) category name
         tooltip: idea.description || '',
         onDragStart: (event) => {
+          // Data sent for drag/drop should also be normalized
           event.dataTransfer.setData('application/json', JSON.stringify(idea));
         },
         onDelete: () => {

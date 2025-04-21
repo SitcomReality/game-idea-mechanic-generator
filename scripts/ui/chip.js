@@ -1,19 +1,26 @@
 import { showTooltip, hideTooltip } from './tooltipManager.js';
 
+// Helper function to normalize category names before generating class names
+function normalizeCategoryNameForClass(categoryName) {
+  if (categoryName === 'Theme') return 'Narrative Theme';
+  if (categoryName === 'Setting') return 'Setting/Context';
+  return categoryName || 'default'; // Fallback
+}
+
 // Helper function to create CSS-friendly class names from categories
 function getCategoryClassName(categoryName) {
-  if (!categoryName) return 'category-default';
+  // Normalize first to handle short names
+  const normalizedName = normalizeCategoryNameForClass(categoryName);
   // Split by '.' and take the first part (top-level category)
-  const topLevelCategory = categoryName.split('.')[0];
+  const topLevelCategory = normalizedName.split('.')[0];
   // Convert to lowercase and replace spaces/slashes with hyphens
   return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
 export function createChip({ text, category, tooltip = '', onDragStart, onDelete }) {
   const chip = document.createElement('div');
-  // Use the original category string for display, but the sanitized one for class
-  const displayCategory = category || ''; // Use the full path for display if needed
-  const categoryClassName = getCategoryClassName(category); // Generate class name based only on top level
+  // Generate class name based on potentially normalized category
+  const categoryClassName = getCategoryClassName(category);
   chip.className = `chip ${categoryClassName}`; // Add category class
   chip.draggable = true;
 
@@ -22,6 +29,7 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   contentDiv.className = 'chip-content';
 
   // Category label (if provided) - Use the original category string for display text
+  const displayCategory = category || ''; // Use the full path for display if needed
   if (displayCategory) {
     const categorySpan = document.createElement('span');
     categorySpan.className = 'chip-category';
@@ -124,7 +132,7 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
     }
     chip.classList.add('dragging');
     if (onDragStart) {
-      onDragStart(event);
+      onDragStart(event); // Pass the event containing potentially normalized data
     }
     hideTooltip();
   });
