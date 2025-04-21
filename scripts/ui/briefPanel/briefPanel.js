@@ -1,6 +1,6 @@
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { MAKE_BRIEF } from '../../llm/prompts.js';
-import { marked } from 'marked'; // Import the marked library
+import marked from 'marked'; // Corrected: Use default import for marked
 
 export function initBriefPanel(state) {
   const briefContainer = document.getElementById('brief-container');
