@@ -55,7 +55,6 @@ export function initGeneratorPanel(state) {
   const termQuantityDisplay = document.getElementById('term-quantity-display');
   const customTextInput = document.getElementById('custom-text');
   const useDraftContextCheckbox = document.getElementById('use-draft-context');
-  const sectionToggleContainer = document.getElementById('section-toggle-container');
   const generateButton = document.getElementById('generate-ideas-btn');
   const ideasContainer = document.getElementById('generated-ideas-container');
   const selectedTagsListContainer = document.getElementById('selected-tags-list');
@@ -197,35 +196,6 @@ export function initGeneratorPanel(state) {
     ideaDetailLevelSelect.value = level;
   });
 
-  const sections = {
-    mechanics: 'Mechanics',
-    themes: 'Themes',
-    settings: 'Settings',
-    systems: 'Systems'
-  };
-
-  Object.entries(sections).forEach(([key, label]) => {
-    const toggleDiv = document.createElement('div');
-    toggleDiv.className = 'toggle-item';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.id = `toggle-${key}`;
-    checkbox.checked = state.getEnabledSections()[key];
-
-    checkbox.addEventListener('change', () => {
-      state.setEnabledSection(key, checkbox.checked);
-    });
-
-    const toggleLabel = document.createElement('label');
-    toggleLabel.htmlFor = `toggle-${key}`;
-    toggleLabel.textContent = label;
-
-    toggleDiv.appendChild(checkbox);
-    toggleDiv.appendChild(toggleLabel);
-    sectionToggleContainer.appendChild(toggleDiv);
-  });
-
   generateButton.addEventListener('click', async () => {
     generateButton.disabled = true;
     generateButton.textContent = 'Generating...';
@@ -234,7 +204,6 @@ export function initGeneratorPanel(state) {
       const quantity = state.getTermQuantity();
       const customText = state.getCustomText();
       const selectedTags = state.getSelectedTags();
-      const enabledSections = state.getEnabledSections();
       const designDraft = state.getDesignDraft();
       const useDraftContext = state.getUseDraftContext();
       const ideaDetailLevel = state.getIdeaDetailLevel();
@@ -246,7 +215,6 @@ export function initGeneratorPanel(state) {
         selectedTags,
         quantity,
         customText,
-        enabledSections,
         draftContextForLLM,
         ideaDetailLevel
       );
@@ -315,7 +283,6 @@ export function initGeneratorPanel(state) {
         description: idea.description || '', // Use description field
         onDragStart: (event) => {
           // Chip's dragstart handler now stringifies the data itself
-          // event.dataTransfer.setData('application/json', JSON.stringify(idea));
         },
         onDelete: () => {
           const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);

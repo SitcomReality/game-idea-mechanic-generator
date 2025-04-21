@@ -30,47 +30,6 @@
   gap: var(--spacing-s);
 }
 
-.section-toggles {
-  margin-bottom: var(--spacing-m);
-  border: 1px solid var(--border-color-light);
-  padding: var(--spacing-s);
-  border-radius: var(--border-radius-m);
-  background-color: var(--bg-primary);
-}
-
-.section-toggles h3 {
-  font-size: 0.9rem;
-  margin-bottom: var(--spacing-s);
-  color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing-xs);
-  font-weight: normal;
-}
-
-#section-toggle-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: var(--spacing-xs);
-}
-
-#section-toggle-container .toggle-item {
-  display: flex;
-  align-items: center;
-}
-
-#section-toggle-container label {
-  margin-bottom: 0;
-  margin-left: var(--spacing-xs);
-  color: var(--text-primary);
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
-#section-toggle-container input[type="checkbox"] {
-  width: auto;
-  cursor: pointer;
-}
-
 .panel-content {
   flex-grow: 1;
   overflow-y: auto;

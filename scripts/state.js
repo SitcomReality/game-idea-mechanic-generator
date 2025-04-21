@@ -2,8 +2,8 @@
 export function initState() {
   const DRAFT_STORAGE_KEY = 'gimg_designDraft';
   const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
-  const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; // New key
-  const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel'; // New key for detail level
+  const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; 
+  const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel'; 
 
   // Load initial draft from localStorage
   const initialDraft = (() => {
@@ -67,18 +67,12 @@ export function initState() {
     selectedTags: new Set(),
     termQuantity: 3,
     customText: '',
-    enabledSections: {
-      mechanics: true,
-      themes: true,
-      settings: true,
-      systems: true
-    },
     generatedIdeas: [],
-    designDraft: initialDraft, // Load from storage
+    designDraft: initialDraft, 
     designBrief: '',
-    useDraftContext: initialUseDraftContext, // Load from storage, default true
-    briefOptions: initialBriefOptions, // Load from storage
-    ideaDetailLevel: initialIdeaDetailLevel // Add new state variable
+    useDraftContext: initialUseDraftContext, 
+    briefOptions: initialBriefOptions, 
+    ideaDetailLevel: initialIdeaDetailLevel 
   };
 
   // Subscription system
@@ -87,13 +81,12 @@ export function initState() {
     selectedTags: [],
     termQuantity: [],
     customText: [],
-    enabledSections: [],
     generatedIdeas: [],
     designDraft: [],
     designBrief: [],
     useDraftContext: [],
     briefOptions: [],
-    ideaDetailLevel: [] // New listener array
+    ideaDetailLevel: [] 
   };
 
   // Save draft to localStorage helper
@@ -182,13 +175,12 @@ export function initState() {
     getSelectedTags: () => new Set(_state.selectedTags),
     getTermQuantity: () => _state.termQuantity,
     getCustomText: () => _state.customText,
-    getEnabledSections: () => ({..._state.enabledSections}),
     getGeneratedIdeas: () => [..._state.generatedIdeas],
     getDesignDraft: () => [..._state.designDraft],
     getDesignBrief: () => _state.designBrief,
     getUseDraftContext: () => _state.useDraftContext,
     getBriefOptions: () => ({ ..._state.briefOptions }),
-    getIdeaDetailLevel: () => _state.ideaDetailLevel, // New getter
+    getIdeaDetailLevel: () => _state.ideaDetailLevel, 
 
     // Setters
     setTaxonomy: (taxonomy) => {
@@ -221,11 +213,6 @@ export function initState() {
       notifyListeners('customText');
     },
 
-    setEnabledSection: (section, enabled) => {
-      _state.enabledSections[section] = enabled;
-      notifyListeners('enabledSections');
-    },
-
     setGeneratedIdeas: (ideas) => {
       _state.generatedIdeas = ideas;
       notifyListeners('generatedIdeas');
@@ -233,19 +220,19 @@ export function initState() {
 
     addToDesignDraft: (item) => {
       _state.designDraft.push(item);
-      saveDraftToStorage(_state.designDraft); // Save to storage
+      saveDraftToStorage(_state.designDraft); 
       notifyListeners('designDraft');
     },
 
     removeFromDesignDraft: (index) => {
       _state.designDraft.splice(index, 1);
-      saveDraftToStorage(_state.designDraft); // Save to storage
+      saveDraftToStorage(_state.designDraft); 
       notifyListeners('designDraft');
     },
 
     setDesignDraft: (draft) => {
       _state.designDraft = draft;
-      saveDraftToStorage(_state.designDraft); // Save to storage
+      saveDraftToStorage(_state.designDraft); 
       notifyListeners('designDraft');
     },
 
@@ -256,14 +243,14 @@ export function initState() {
 
     setUseDraftContext: (useContext) => {
       _state.useDraftContext = useContext;
-      saveDraftContextSettingToStorage(useContext); // Save to storage
+      saveDraftContextSettingToStorage(useContext); 
       notifyListeners('useDraftContext');
     },
 
     setBriefOption: (optionKey, value) => {
       if (_state.briefOptions.hasOwnProperty(optionKey)) {
           _state.briefOptions[optionKey] = value;
-          saveBriefOptionsToStorage(_state.briefOptions); // Save on change
+          saveBriefOptionsToStorage(_state.briefOptions); 
           notifyListeners('briefOptions');
       } else {
           console.warn(`Attempted to set unknown brief option: ${optionKey}`);
@@ -273,7 +260,7 @@ export function initState() {
     setIdeaDetailLevel: (level) => {
       if (['brief', 'standard', 'detailed'].includes(level)) {
         _state.ideaDetailLevel = level;
-        saveIdeaDetailLevelToStorage(level); // Save on change
+        saveIdeaDetailLevelToStorage(level); 
         notifyListeners('ideaDetailLevel');
       } else {
         console.warn(`Attempted to set invalid idea detail level: ${level}`);
@@ -282,7 +269,7 @@ export function initState() {
 
     // Import/Export
     exportDesignDraft: () => {
-        return JSON.stringify(_state.designDraft, null, 2); // Pretty print JSON
+        return JSON.stringify(_state.designDraft, null, 2); 
     },
 
     importDesignDraft: (jsonData) => {
@@ -292,14 +279,14 @@ export function initState() {
           _state.designDraft = data;
           saveDraftToStorage(_state.designDraft);
           notifyListeners('designDraft');
-          return true; // Indicate success
+          return true; 
         } else {
           // Validation errors logged in isValidDraftData
-          return false; // Indicate failure
+          return false; 
         }
       } catch (error) {
         console.error('Error parsing imported draft data:', error);
-        return false; // Indicate failure
+        return false; 
       }
     },
 
@@ -320,7 +307,7 @@ export function initState() {
         };
       }
       console.warn(`Attempted to subscribe to non-existent state key: ${key}`);
-      return () => {}; // No-op if key doesn't exist
+      return () => {}; 
     }
   };
 }

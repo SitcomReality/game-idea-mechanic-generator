@@ -1,17 +1,8 @@
 import { generateGameIdea } from '../llm/callLLM.js';
 
-export async function generateIdeasFromLLM(selectedTags, quantity, customText, enabledSections, designDraftContext, ideaDetailLevel) {
+export async function generateIdeasFromLLM(selectedTags, quantity, customText, designDraftContext, ideaDetailLevel) {
   try {
-    const enabledCategories = [];
-    if (enabledSections.mechanics) enabledCategories.push('Mechanic');
-    if (enabledSections.themes) enabledCategories.push('Theme');
-    if (enabledSections.settings) enabledCategories.push('Setting');
-    if (enabledSections.systems) enabledCategories.push('System');
-
-    const categories = new Set([
-      ...enabledCategories,
-      ...selectedTags
-    ]);
+    const categories = selectedTags;
 
     let draftText = '';
     if (designDraftContext && designDraftContext.length > 0) {

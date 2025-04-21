@@ -24,13 +24,21 @@ export async function generateGameIdea(parameters) {
   try {
     const { categories, quantity, customText, draftContext, ideaDetailLevel } = parameters;
 
-    const categoriesText = categories.size > 0
-      ? `Focus on these categories: ${Array.from(categories).join(', ')}.`
-      : 'Generate a diverse mix of mechanics, themes, and settings.';
+    // Determine instruction based on input
+    let primaryInstruction = '';
+    const hasCategories = categories && categories.size > 0;
+    const hasCustomText = customText && customText.trim() !== '';
 
-    const userText = customText
-      ? `Incorporate these concepts if possible: ${customText}`
-      : '';
+    if (hasCategories && hasCustomText) {
+      primaryInstruction = `Focus on these categories/tags: ${Array.from(categories).join(', ')}. Also incorporate these custom concepts: ${customText}`;
+    } else if (hasCategories) {
+      primaryInstruction = `Focus on these categories/tags: ${Array.from(categories).join(', ')}.`;
+    } else if (hasCustomText) {
+      primaryInstruction = `Focus on these custom concepts: ${customText}`;
+    } else {
+      // No tags or custom text provided
+      primaryInstruction = 'Generate a diverse mix of random mechanics, themes, settings, or other game elements.';
+    }
 
     const draftContextText = draftContext && draftContext.trim() !== ''
       ? `Generate ideas that complement or build upon the following existing design draft elements:\n${draftContext}`
@@ -51,11 +59,11 @@ export async function generateGameIdea(parameters) {
         },
         {
           role: "user",
-          content: `Generate ${quantity} unique game mechanics, themes, or setting elements. ${categoriesText} ${userText} ${draftContextText}
+          content: `Generate ${quantity} unique game elements. ${primaryInstruction} ${draftContextText}
 
           Format your response as a JSON array of objects, each with:
-          - category: The category (Mechanic, Theme, Setting, System, etc.)
-          - text: The name or brief description of the game element
+          - category: The category (e.g., Mechanic, Narrative Theme, Setting/Context, UI, etc.) or a specific tag path if relevant (e.g., Mechanic.Combat.Melee).
+          - text: The name or brief description of the game element.
           - ${descriptionInstruction}`
         }
       ],
