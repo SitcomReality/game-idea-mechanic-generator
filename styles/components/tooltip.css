@@ -3,7 +3,8 @@
   display: inline-block;
 }
 
-.tooltip-content {
+/* Make sure this is positioned relative to the parent .tooltip */
+.tooltip .tooltip-content {
   visibility: hidden;
   width: 200px;
   background-color: var(--bg-tertiary);
@@ -31,9 +32,13 @@
   
   /* Shadow */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  
+  /* Prevent pointer events on the tooltip itself by default */
+  pointer-events: none; 
 }
 
-.tooltip-content::after {
+/* Arrow styling */
+.tooltip .tooltip-content::after {
   content: "";
   position: absolute;
   top: 100%;
@@ -44,8 +49,9 @@
   border-color: var(--border-color) transparent transparent transparent;
 }
 
+/* Show tooltip on hover of the element with the .tooltip class */
 .tooltip:hover .tooltip-content {
   visibility: visible;
   opacity: 1;
+  pointer-events: auto; /* Allow interaction if needed */
 }
-

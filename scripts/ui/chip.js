@@ -26,33 +26,16 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   // Info button (if tooltip provided)
   if (tooltip) {
     const infoBtn = document.createElement('span');
-    infoBtn.className = 'chip-info';
+    infoBtn.className = 'chip-info tooltip';
     infoBtn.textContent = 'i';
     
-    // Add tooltip and event listener
+    // Add tooltip content
     const tooltipEl = document.createElement('div');
     tooltipEl.className = 'tooltip-content';
     tooltipEl.textContent = tooltip;
-    
-    // Initially hide tooltip
-    tooltipEl.style.display = 'none';
-    
     infoBtn.appendChild(tooltipEl);
-
-    // Toggle tooltip on click event
-    infoBtn.addEventListener('click', (e) => {
-      tooltipEl.style.display = tooltipEl.style.display === 'none' ? 'block' : 'none';
-      e.stopPropagation(); // Prevent bubbling
-    });
-
-    chip.appendChild(infoBtn);
     
-    // Close tooltip when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!infoBtn.contains(e.target)) {
-        tooltipEl.style.display = 'none';
-      }
-    });
+    chip.appendChild(infoBtn);
   }
   
   // Delete button
