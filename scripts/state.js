@@ -8,7 +8,12 @@ export function initState() {
   const initialDraft = (() => {
     try {
       const storedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
-      return storedDraft ? JSON.parse(storedDraft) : [];
+      if (storedDraft) {
+        // Basic validation: Ensure it's an array
+        const parsed = JSON.parse(storedDraft);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+      return [];
     } catch (error) {
       console.error('Error loading design draft from localStorage:', error);
       localStorage.removeItem(DRAFT_STORAGE_KEY); // Clear invalid data
@@ -117,6 +122,42 @@ export function initState() {
     }
   }
 
+  // Function to validate imported draft data
+  function isValidDraftData(data) {
+    if (!Array.isArray(data)) {
+      console.error("Import failed: Data is not an array.");
+      return false;
+    }
+    for (const item of data) {
+      if (typeof item !== 'object' || item === null) {
+        console.error("Import failed: Array contains non-object elements.");
+        return false;
+      }
+      if (item.type === 'html') {
+        if (typeof item.text !== 'string') {
+          console.error("Import failed: HTML item missing 'text' string.", item);
+          return false;
+        }
+      } else {
+        // Assuming chip-like object
+        if (typeof item.text !== 'string') {
+          console.error("Import failed: Chip item missing 'text' string.", item);
+          return false;
+        }
+        // Category and description are optional but should be strings if present
+        if (item.hasOwnProperty('category') && typeof item.category !== 'string') {
+          console.error("Import failed: Chip item has non-string 'category'.", item);
+          return false;
+        }
+         if (item.hasOwnProperty('description') && typeof item.description !== 'string') {
+          console.error("Import failed: Chip item has non-string 'description'.", item);
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   // Public API
   return {
     // Getters
@@ -210,6 +251,30 @@ export function initState() {
           console.warn(`Attempted to set unknown brief option: ${optionKey}`);
       }
     },
+
+    // Import/Export
+    exportDesignDraft: () => {
+        return JSON.stringify(_state.designDraft, null, 2); // Pretty print JSON
+    },
+
+    importDesignDraft: (jsonData) => {
+      try {
+        const data = JSON.parse(jsonData);
+        if (isValidDraftData(data)) {
+          _state.designDraft = data;
+          saveDraftToStorage(_state.designDraft);
+          notifyListeners('designDraft');
+          return true; // Indicate success
+        } else {
+          // Validation errors logged in isValidDraftData
+          return false; // Indicate failure
+        }
+      } catch (error) {
+        console.error('Error parsing imported draft data:', error);
+        return false; // Indicate failure
+      }
+    },
+
 
     // Subscription methods
     subscribe: (key, callback) => {
