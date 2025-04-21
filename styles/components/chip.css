@@ -37,8 +37,7 @@
 }
 
 .chip-category {
-  /* Default color is set via category class */
-  color: var(--category-default); /* Fallback */
+  color: var(--category-default);
   font-weight: normal;
   font-size: 0.75rem;
   margin-bottom: 3px;
@@ -46,15 +45,33 @@
   letter-spacing: 0.5px;
 }
 
-/* Apply specific category colors */
-.chip.category-mechanic .chip-category { color: var(--category-mechanic); }
-.chip.category-narrative-theme .chip-category { color: var(--category-narrative-theme); }
-.chip.category-setting-context .chip-category { color: var(--category-setting-context); }
-.chip.category-game-economy .chip-category { color: var(--category-game-economy); }
-.chip.category-progression .chip-category { color: var(--category-progression); }
-.chip.category-ui .chip-category { color: var(--category-ui); }
-.chip.category-social-multiplayer .chip-category { color: var(--category-social-multiplayer); }
-/* Add more rules here if top-level categories change */
+.chip.category-mechanic .chip-category { 
+  color: var(--category-mechanic); 
+}
+
+.chip.category-narrative-theme .chip-category { 
+  color: var(--category-narrative-theme); 
+}
+
+.chip.category-setting-context .chip-category { 
+  color: var(--category-setting-context); 
+}
+
+.chip.category-game-economy .chip-category { 
+  color: var(--category-game-economy); 
+}
+
+.chip.category-progression .chip-category { 
+  color: var(--category-progression); 
+}
+
+.chip.category-ui .chip-category { 
+  color: var(--category-ui); 
+}
+
+.chip.category-social-multiplayer .chip-category { 
+  color: var(--category-social-multiplayer); 
+}
 
 .chip-label {
   font-weight: bold;
@@ -66,13 +83,13 @@
 
 .chip-actions {
   position: absolute;
-  top: calc(50% - 9px);
+  top: calc(50% - 10px);
   right: var(--spacing-s);
   display: flex;
-  gap: 4px;
+  gap: 5px;
 }
 
-.chip-delete, .chip-info {
+.chip-delete, .chip-info, .chip-copy {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -85,7 +102,7 @@
   padding: 0;
 }
 
-.chip-delete:active, .chip-info:active {
+.chip-delete:active, .chip-info:active, .chip-copy:active {
   transform: scale(0.9);
 }
 
@@ -113,6 +130,18 @@
 
 .chip-info:hover {
   background-color: var(--accent-alt);
+  color: var(--bg-primary);
+}
+
+.chip-copy {
+  background-color: rgba(125, 92, 255, 0.15);
+  color: var(--accent-primary);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.chip-copy:hover {
+  background-color: var(--accent-primary);
   color: var(--bg-primary);
 }
 

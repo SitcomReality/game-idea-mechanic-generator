@@ -60,6 +60,34 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
     });
 
     actionsDiv.appendChild(infoBtn);
+
+    // Add Copy button only if there's tooltip info to copy
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'chip-copy';
+    copyBtn.innerHTML = '📋'; // Copy emoji or icon
+    copyBtn.setAttribute('aria-label', 'Copy details');
+    copyBtn.title = 'Copy details'; // Tooltip for the button itself
+
+    copyBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent drag start
+      navigator.clipboard.writeText(tooltip).then(() => {
+        copyBtn.innerHTML = '✓'; // Checkmark for success
+        copyBtn.title = 'Copied!';
+        setTimeout(() => {
+          copyBtn.innerHTML = '📋'; // Revert icon
+          copyBtn.title = 'Copy details';
+        }, 1500);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+        copyBtn.innerHTML = '✗'; // Error indicator
+         copyBtn.title = 'Copy failed';
+        setTimeout(() => {
+          copyBtn.innerHTML = '📋'; // Revert icon
+          copyBtn.title = 'Copy details';
+        }, 1500);
+      });
+    });
+    actionsDiv.appendChild(copyBtn);
   }
 
   // Delete button
@@ -68,6 +96,7 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
     deleteBtn.className = 'chip-delete';
     deleteBtn.innerHTML = '&times;'; // Use HTML entity for 'x'
     deleteBtn.setAttribute('aria-label', 'Delete item');
+    deleteBtn.title = 'Delete'; // Tooltip for the button
     deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation(); // Prevent drag start when clicking delete
         onDelete();
