@@ -1,119 +1,116 @@
 import { getWordlists } from '../data/wordlistLoader.js';
 
-export async function generateIdeasFromWordlists(selectedTags, quantity, enabledSections) {
-  try {
-    // Get available wordlists
-    const wordlists = await getWordlists();
-    
-    // Filter wordlists based on enabled sections
-    const filteredLists = {};
-    
-    if (enabledSections.mechanics && wordlists.Mechanics) {
-      filteredLists.Mechanics = wordlists.Mechanics;
+// Helper function to randomly select items from an array
+function selectRandomItems(arr, count) {
+  if (!arr || arr.length === 0) return [];
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
+// Helper function to check if a path matches selected tags
+function pathMatchesTags(pathString, selectedTags) {
+  if (selectedTags.size === 0) {
+    return true; // No tags selected, matches everything
+  }
+  for (const tag of selectedTags) {
+    // Check if path is the tag, a descendant, or an ancestor
+    if (pathString === tag || pathString.startsWith(tag + '.') || tag.startsWith(pathString + '.')) {
+      return true;
     }
-    if (enabledSections.themes && wordlists.Themes) {
-      filteredLists.Themes = wordlists.Themes;
-    }
-    if (enabledSections.settings && wordlists.Settings) {
-      filteredLists.Settings = wordlists.Settings;
-    }
-    if (enabledSections.systems && wordlists.Systems) {
-      filteredLists.Systems = wordlists.Systems;
-    }
-    
-    // If no lists are enabled or available, throw an error
-    if (Object.keys(filteredLists).length === 0) {
-      throw new Error('No wordlists available for the selected sections');
-    }
-    
-    // Filter terms by selected tags (if any)
-    const filteredTerms = {};
-    
-    if (selectedTags.size > 0) {
-      const tagsArray = Array.from(selectedTags);
-      
-      Object.keys(filteredLists).forEach(listKey => {
-        filteredTerms[listKey] = filteredLists[listKey].filter(item => {
-          // If the item doesn't have tags, exclude it when tags are selected
-          if (!item.tags || item.tags.length === 0) {
-            return false;
-          }
-          
-          // Check if any of the item's tags match the selected tags
-          // Include the item if any tag matches any part of the taxonomy path
-          return item.tags.some(tag => {
-            return tagsArray.some(selectedTag => {
-              // Check if tag is exactly the selected tag
-              if (tag === selectedTag) return true;
-              
-              // Check if tag starts with the selected tag (parent-child relationship)
-              if (tag.startsWith(selectedTag + '.')) return true;
-              
-              // Check if selected tag starts with the tag (child-parent relationship)
-              if (selectedTag.startsWith(tag + '.')) return true;
-              
-              return false;
-            });
+  }
+  return false;
+}
+
+// Recursive function to collect terms from the hierarchical structure
+function collectTerms(node, currentPath, allCollectedTerms, selectedTags, enabledSections) {
+  if (!node || typeof node !== 'object') {
+    return;
+  }
+
+  const pathString = currentPath.join('.');
+  const topLevelCategory = currentPath[0];
+
+  // Check if the top-level category is enabled
+  if (!enabledSections[topLevelCategory.toLowerCase()]) {
+    return; // Skip this entire branch if the top-level section is disabled
+  }
+
+  // Check if the current path matches any selected tags (if any exist)
+  if (selectedTags.size > 0 && !pathMatchesTags(pathString, selectedTags)) {
+     // If tags are selected, but this path doesn't match, check children
+     // but don't add terms from *this* node unless it's an exact match or ancestor.
+     // However, a simpler approach for now: if path doesn't match, only recurse if it's an *ancestor* of a selected tag.
+     let isAncestor = false;
+     for (const tag of selectedTags) {
+       if (tag.startsWith(pathString + '.')) {
+         isAncestor = true;
+         break;
+       }
+     }
+     if (!isAncestor) return; // Stop traversing this branch if it doesn't match and isn't an ancestor
+  }
+
+
+  // Add terms from the current node if they exist and the path is valid
+  if (Array.isArray(node._terms)) {
+      // Only add if the path is directly relevant (exact match or descendant of a selected tag)
+      if (pathMatchesTags(pathString, selectedTags)) {
+        node._terms.forEach(term => {
+          allCollectedTerms.push({
+            // Use the top-level category for consistency
+            category: topLevelCategory,
+            text: term.text,
+            description: term.description || '',
+            // Add the full path as a tag for potential future use/filtering
+            tags: [pathString]
           });
         });
-      });
-    } else {
-      // If no tags selected, use all terms
-      filteredTerms = { ...filteredLists };
+      }
+  }
+
+  // Recurse into child nodes
+  for (const key in node) {
+    if (key !== '_terms') {
+      collectTerms(node[key], [...currentPath, key], allCollectedTerms, selectedTags, enabledSections);
     }
-    
-    // Generate random selections from each list
-    const results = [];
-    
-    // Calculate how many items to pick from each category
-    const enabledCategories = Object.keys(filteredTerms);
-    const termsPerCategory = Math.ceil(quantity / enabledCategories.length);
-    
-    enabledCategories.forEach(category => {
-      const terms = filteredTerms[category];
-      
-      // Skip empty lists
-      if (!terms || terms.length === 0) return;
-      
-      // Randomly select terms
-      const selectedTerms = selectRandomTerms(terms, termsPerCategory);
-      
-      // Add to results
-      selectedTerms.forEach(term => {
-        results.push({
-          category,
-          text: term.text,
-          description: term.description || '',
-          tags: term.tags || []
-        });
-      });
-    });
-    
-    return results;
-  } catch (error) {
-    console.error('Error generating ideas from wordlists:', error);
-    throw new Error(`Wordlist generation failed: ${error.message}`);
   }
 }
 
-// Helper function to randomly select terms from a list
-function selectRandomTerms(termList, count) {
-  // If there aren't enough terms, return all of them
-  if (termList.length <= count) {
-    return [...termList];
-  }
-  
-  // Otherwise, randomly select 'count' terms
-  const selected = [];
-  const indices = new Set();
-  
-  while (indices.size < count) {
-    const randomIndex = Math.floor(Math.random() * termList.length);
-    if (!indices.has(randomIndex)) {
-      indices.add(randomIndex);
-      selected.push(termList[randomIndex]);
+export async function generateIdeasFromWordlists(selectedTags, quantity, enabledSections) {
+  try {
+    const wordlists = await getWordlists();
+    const allCollectedTerms = [];
+
+    // Start collecting terms from the root of each top-level category
+    for (const topLevelCategory in wordlists) {
+      collectTerms(
+        wordlists[topLevelCategory],
+        [topLevelCategory], // Start path with the top-level category name
+        allCollectedTerms,
+        selectedTags,
+        enabledSections
+      );
     }
+
+    // Deduplicate terms (based on text and category) in case they appear multiple times
+    const uniqueTerms = Array.from(new Map(allCollectedTerms.map(term => [`${term.category}:${term.text}`, term])).values());
+
+
+    if (uniqueTerms.length === 0) {
+       console.warn('No terms found matching the criteria:', { selectedTags, enabledSections });
+       // Return empty array or throw an error depending on desired behavior
+       return [];
+      // throw new Error('No wordlist terms found matching the current filters.');
+    }
+
+    // Select the requested quantity randomly from the collected terms
+    const results = selectRandomItems(uniqueTerms, quantity);
+
+    return results;
+
+  } catch (error) {
+    console.error('Error generating ideas from wordlists:', error);
+    // Rethrow or handle more gracefully
+    throw new Error(`Wordlist generation failed: ${error.message}`);
   }
-  
-  return selected;
 }
