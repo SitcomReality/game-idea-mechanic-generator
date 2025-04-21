@@ -28,11 +28,16 @@
       <div id="taxonomy-tabs-container">
         <div id="taxonomy-tab-buttons"></div>
         <div id="taxonomy-tab-content"></div>
-        <button id="random-tag-btn" class="icon-btn" title="Select Random Tag">🎲</button>
       </div>
 
       <div id="selected-tags-section">
-        <h4>Selected Tags:</h4>
+        <div class="selected-tags-header">
+          <h4>Selected Tags:</h4>
+          <div class="selected-tags-controls">
+            <button id="random-tag-btn" class="icon-btn" title="Select Random Tag">🎲</button>
+            <button id="clear-tags-btn" class="icon-btn danger-btn" title="Clear All Selected Tags">🗑️</button>
+          </div>
+        </div>
         <div id="selected-tags-list-container">
           <ul id="selected-tags-list">
             <!-- Selected tags will be listed here -->

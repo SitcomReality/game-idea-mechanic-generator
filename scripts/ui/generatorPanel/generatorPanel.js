@@ -36,6 +36,7 @@ export function initGeneratorPanel(state) {
   const tabButtonsContainer = document.getElementById('taxonomy-tab-buttons');
   const tabContentContainer = document.getElementById('taxonomy-tab-content');
   const randomTagButton = document.getElementById('random-tag-btn'); // Get the random button
+  const clearTagsButton = document.getElementById('clear-tags-btn'); // Get the clear button
   const termQuantityInput = document.getElementById('term-quantity');
   const termQuantityDisplay = document.getElementById('term-quantity-display');
   const customTextInput = document.getElementById('custom-text');
@@ -240,6 +241,18 @@ export function initGeneratorPanel(state) {
     const randomTagPath = allPathsCache[randomIndex];
     console.log(`Randomly selecting: ${randomTagPath}`); // For debugging
     state.addSelectedTag(randomTagPath); // Add the tag to the state
+  });
+
+  // Add event listener for the clear tags button
+  clearTagsButton.addEventListener('click', () => {
+      if (state.getSelectedTags().size > 0) {
+          if (window.confirm('Are you sure you want to clear all selected tags?')) {
+              state.setSelectedTags(new Set()); // Clear all tags in the state
+          }
+      } else {
+          // Optionally provide feedback if there are no tags to clear
+          console.log('No tags selected to clear.');
+      }
   });
 
   state.subscribe('generatedIdeas', (ideas) => {
