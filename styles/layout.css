@@ -1,14 +1,21 @@
 body {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
 }
 
-header {
-  background-color: var(--bg-secondary);
-  padding: var(--spacing-m) var(--spacing-l);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  text-align: center;
+main.app-container {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr auto;
+  gap: var(--spacing-m);
+  padding: var(--spacing-m);
+  height: calc(100vh - 2 * var(--spacing-m) - 50px);
+  overflow: hidden;
+  grid-template-areas:
+    "generator ideas draft"
+    "brief brief brief";
 }
 
 footer {
@@ -17,72 +24,87 @@ footer {
   text-align: center;
   color: var(--text-secondary);
   font-size: 0.8rem;
-}
-
-.app-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr; 
-  grid-template-rows: auto auto; 
-  gap: var(--spacing-m);
-  padding: var(--spacing-m);
-  height: 100%;
-  overflow: hidden; 
-  grid-template-areas:
-    "generator ideas draft"
-    "brief brief brief";
+  border-top: 1px solid var(--border-color);
+  height: 50px;
+  flex-shrink: 0;
 }
 
 #generator-panel {
   grid-area: generator;
-  overflow-y: auto; 
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 #generated-ideas-panel {
   grid-area: ideas;
-  overflow-y: auto; 
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 #draft-panel {
   grid-area: draft;
-  overflow-y: auto; 
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 #brief-panel {
-  grid-area: brief; 
-  overflow-y: auto; 
+  grid-area: brief;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: 40vh;
 }
 
 @media (max-width: 1200px) {
-  .app-container {
-    grid-template-columns: 1fr 1fr; 
-    grid-template-rows: auto auto auto; 
+  main.app-container {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr auto auto;
+    height: auto;
     grid-template-areas:
       "generator ideas"
       "draft draft"
       "brief brief";
+    overflow: visible;
+  }
+  #brief-panel {
+    max-height: none;
   }
 }
 
 @media (max-width: 768px) {
-  .app-container {
-    grid-template-columns: 1fr; 
-    grid-template-rows: auto auto auto auto; 
+  main.app-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    height: auto;
     grid-template-areas:
       "generator"
       "ideas"
       "draft"
       "brief";
-    overflow-y: auto; 
+    overflow-y: visible;
   }
 
   #generator-panel, #generated-ideas-panel, #draft-panel, #brief-panel {
     overflow-y: visible;
-    max-height: none; 
+    max-height: none;
+    height: auto;
   }
 }
 
 .control-group {
   margin-bottom: var(--spacing-m);
+}
+
+.control-group label:not(.block-label) {
+  display: inline-block;
+  margin-bottom: var(--spacing-xs);
+}
+
+label.block-label {
+  display: block;
 }
 
 .button-group {
@@ -91,18 +113,38 @@ footer {
 }
 
 .results-container {
-  min-height: 200px;
-  flex-grow: 1; 
-  overflow-y: auto; 
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: var(--spacing-s);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-m);
+  margin-top: var(--spacing-m);
+  background-color: var(--bg-primary);
 }
 
 .editable-container {
-  min-height: 200px; 
   background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-m);
   padding: var(--spacing-m);
   margin-bottom: var(--spacing-m);
   overflow-y: auto;
-  flex-grow: 1; 
+  flex-grow: 1;
+  color: var(--text-primary);
+}
+
+.editable-container:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-transparent, rgba(125, 92, 255, 0.3));
+}
+
+#generated-ideas-panel h2 {
+  margin-bottom: 0;
+  border-bottom: none;
+}
+
+.panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }

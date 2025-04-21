@@ -1,25 +1,32 @@
 :root {
-  /* Dark theme colors */
-  --bg-primary: #1a1a1a;
-  --bg-secondary: #222222;
-  --bg-tertiary: #2a2a2a;
-  --text-primary: #f1f1f1;
-  --text-secondary: #b0b0b0;
-  --accent-primary: #7d5cff;
-  --accent-secondary: #5d3fd9;
-  --accent-tertiary: #9a7dff;
+  /* Dark theme colors - Refined Palette */
+  --bg-primary: #1a1a1a;        /* Deepest background (body) */
+  --bg-secondary: #212121;      /* Panel backgrounds */
+  --bg-tertiary: #2a2a2a;       /* Input fields, buttons, hover states */
+  --bg-tertiary-light: #333333; /* Lighter tertiary for subtle highlights */
+
+  --text-primary: #f0f0f0;      /* Main text */
+  --text-secondary: #b0b0b0;    /* Subdued text (labels, placeholders) */
+  --text-tertiary: #888888;     /* Very subtle text */
+
+  --accent-primary: #7d5cff;    /* Main purple accent */
+  --accent-secondary: #6a4ff0;  /* Darker purple (hover/active) */
+  --accent-tertiary: #9a7dff;   /* Lighter purple (links, highlights) */
+  --accent-alt: #30a0a0;        /* Secondary accent (teal/cyan) */
+
   --danger: #ff5c5c;
-  --success: #4caf50;
+  --success: #5cb85c; /* Slightly adjusted green */
   --warning: #ff9800;
-  --border-color: #444;
-  
+  --border-color: #383838;      /* Softer borders */
+  --border-color-light: #4a4a4a; /* Slightly lighter border for secondary elements */
+
   /* Sizing */
   --spacing-xs: 0.25rem;
   --spacing-s: 0.5rem;
   --spacing-m: 1rem;
   --spacing-l: 1.5rem;
   --spacing-xl: 2rem;
-  
+
   --border-radius-s: 4px;
   --border-radius-m: 6px;
   --border-radius-l: 8px;
@@ -48,23 +55,30 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 1.8rem;
+  font-size: 1.8rem; /* Was 1.8rem */
 }
 
 h2 {
-  font-size: 1.5rem;
+  font-size: 1.4rem; /* Was 1.5rem */
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: var(--spacing-xs);
+  padding-bottom: var(--spacing-s); /* Increased padding slightly */
+  color: var(--text-secondary); /* Slightly muted */
 }
 
 h3 {
-  font-size: 1.2rem;
+  font-size: 1.15rem; /* Was 1.2rem */
+  color: var(--text-secondary);
+}
+
+h4 {
+    font-size: 1rem; /* Added definition */
+    color: var(--text-secondary);
 }
 
 button {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color-light); /* Lighter border */
   border-radius: var(--border-radius-s);
   padding: var(--spacing-xs) var(--spacing-m);
   cursor: pointer;
@@ -73,17 +87,24 @@ button {
 }
 
 button:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-tertiary-light); /* Lighter hover */
+  border-color: var(--border-color);
+}
+
+button:active {
+    transform: translateY(1px); /* Subtle press effect */
 }
 
 button.active {
-  background-color: var(--accent-primary);
-  border-color: var(--accent-tertiary);
+  background-color: var(--accent-secondary); /* Use darker accent for active */
+  border-color: var(--accent-primary);
+  color: #fff; /* Ensure contrast */
 }
 
 button.primary-btn {
   background-color: var(--accent-primary);
-  border-color: var(--accent-tertiary);
+  border-color: var(--accent-secondary);
+  color: #fff; /* Ensure contrast */
   font-weight: 600;
   padding: var(--spacing-s) var(--spacing-l);
 }
@@ -95,6 +116,7 @@ button.primary-btn:hover {
 button.danger-btn {
   background-color: var(--danger);
   border-color: #ff7c7c;
+  color: #fff; /* Ensure contrast */
   font-weight: 600;
 }
 
@@ -105,15 +127,33 @@ button.danger-btn:hover {
 input, textarea, select {
   background-color: var(--bg-tertiary);
   color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color-light); /* Lighter border */
   border-radius: var(--border-radius-s);
   padding: var(--spacing-s);
   font-size: 0.9rem;
+  width: 100%; /* Ensure inputs take full width by default */
+}
+
+input[type="range"] {
+    width: auto;
 }
 
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px var(--accent-primary-transparent, rgba(125, 92, 255, 0.3)); /* Focus ring */
+}
+
+textarea {
+    min-height: 80px; /* Minimum height for textareas */
+    resize: vertical;
+}
+
+label {
+    display: block; /* Make labels block elements by default */
+    margin-bottom: var(--spacing-xs);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 a {
@@ -123,23 +163,43 @@ a {
 
 a:hover {
   text-decoration: underline;
+  color: var(--accent-primary);
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px; /* Slightly wider scrollbar */
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
   background: var(--bg-secondary);
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
+  background: var(--border-color-light); /* Use lighter border color */
+  border-radius: 5px;
+  border: 2px solid var(--bg-secondary); /* Add padding around thumb */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
+  background: var(--accent-alt); /* Use alt accent color on hover */
+}
+
+/* General utility classes */
+.error-message {
+    color: var(--danger);
+    background-color: rgba(255, 92, 92, 0.1);
+    border: 1px solid var(--danger);
+    padding: var(--spacing-s);
+    border-radius: var(--border-radius-m);
+    margin: var(--spacing-m) 0;
+}
+
+.empty-state {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: var(--spacing-l);
 }
