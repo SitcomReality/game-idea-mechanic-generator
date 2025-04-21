@@ -220,13 +220,72 @@
   margin: 0;
 }
 
+#draft-container .draft-category-section {
+  margin-bottom: var(--spacing-s);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--border-radius-m);
+  background-color: var(--bg-primary);
+  overflow: hidden;
+}
+
+#draft-container .draft-category-summary {
+  padding: var(--spacing-s) var(--spacing-m);
+  padding-left: calc(var(--spacing-m) + var(--spacing-l));
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid transparent;
+  list-style: none;
+  position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#draft-container .draft-category-summary:hover {
+  background-color: var(--bg-tertiary-light);
+}
+
+#draft-container .draft-category-summary::before {
+  content: '▼';
+  position: absolute;
+  left: var(--spacing-m);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8em;
+  transition: transform 0.2s ease;
+  color: var(--text-tertiary);
+}
+
+#draft-container .draft-category-section:not([open]) > .draft-category-summary::before {
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+#draft-container .draft-category-section[open] > .draft-category-summary {
+  border-bottom: 1px solid var(--border-color);
+}
+
+#draft-container .draft-category-section:not([open]) > .draft-category-summary {
+  border-bottom: 1px solid transparent;
+}
+
+#draft-container .draft-category-section .chips-container {
+  padding: var(--spacing-s) var(--spacing-m) var(--spacing-m) var(--spacing-m);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+#draft-container .draft-category-summary.category-mechanic { color: var(--category-mechanic); }
+#draft-container .draft-category-summary.category-narrative-theme { color: var(--category-narrative-theme); }
+#draft-container .draft-category-summary.category-setting-context { color: var(--category-setting-context); }
+#draft-container .draft-category-summary.category-game-economy { color: var(--category-game-economy); }
+#draft-container .draft-category-summary.category-progression { color: var(--category-progression); }
+#draft-container .draft-category-summary.category-ui { color: var(--category-ui); }
+#draft-container .draft-category-summary.category-social-multiplayer { color: var(--category-social-multiplayer); }
+#draft-container .draft-category-summary.category-default { color: var(--text-secondary); }
+
 #selected-tags-section {
   margin-top: var(--spacing-m);
   margin-bottom: var(--spacing-m);
-  border: 1px solid var(--border-color-light);
-  padding: var(--spacing-m);
-  border-radius: var(--border-radius-m);
-  background-color: var(--bg-primary);
 }
 
 #selected-tags-section .selected-tags-header {

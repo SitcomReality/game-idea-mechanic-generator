@@ -2,6 +2,24 @@ import { createChip } from '../chip.js';
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { COHERE_DRAFT } from '../../llm/prompts.js';
 
+// Helper function to get top-level category name for grouping
+function getTopLevelCategory(item) {
+    let category = item.category || 'Uncategorized'; // Default if no category
+    // Normalize common short names first
+    if (category === 'Theme') category = 'Narrative Theme';
+    if (category === 'Setting') category = 'Setting/Context';
+    // Split by '.' and take the first part (top-level category)
+    return category.split('.')[0];
+}
+
+// Helper function to create CSS-friendly class names from categories
+function getCategoryClassName(categoryName) {
+  if (!categoryName) return 'category-default';
+  // Convert to lowercase and replace spaces/slashes with hyphens
+  return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
+}
+
+
 export function initDraftPanel(state) {
   const draftContainer = document.getElementById('draft-container');
   const cohereDraftBtn = document.getElementById('cohere-draft-btn');
@@ -10,7 +28,8 @@ export function initDraftPanel(state) {
   const importDraftBtn = document.getElementById('import-draft-btn');
   const importDraftInput = document.getElementById('import-draft-input'); // Hidden file input
 
-  draftContainer.contentEditable = true;
+  // Make container editable ONLY when showing raw HTML content
+  // draftContainer.contentEditable = true; // REMOVED - Will be set dynamically
 
   draftContainer.addEventListener('dragover', (event) => {
     event.preventDefault();
@@ -34,7 +53,7 @@ export function initDraftPanel(state) {
             text: idea.text,
             category: idea.category,
             description: idea.description || '', // Make sure description exists
-            type: 'chip' // Explicitly mark as chip type for clarity, though not strictly necessary with current logic
+            type: 'chip' // Mark as chip type
         };
         state.addToDesignDraft(chipData);
       } catch (error) {
@@ -43,21 +62,18 @@ export function initDraftPanel(state) {
     }
   });
 
+  // Handle input only when contentEditable is true (i.e., for HTML block)
   draftContainer.addEventListener('input', () => {
-    // Debounce or throttle this if performance becomes an issue
-    const content = draftContainer.innerHTML;
-    // Check if the draft is supposed to be pure HTML (e.g., after cohering or manual edit)
-    // If the state contains only one item and it's HTML, update it.
-    // Otherwise, assume user editing creates an HTML block.
-    const currentDraft = state.getDesignDraft();
-    if (currentDraft.length === 1 && currentDraft[0].type === 'html') {
-        state.setDesignDraft([{ text: content, type: 'html' }]);
-    } else {
-        // If the user edits a mixed content draft, we might want to replace it all with HTML.
-        // Or, we could try to be smarter, but for now, treat manual edits as creating a single HTML block.
-        console.warn("Manual edit detected on a mixed content draft. Replacing with HTML content.");
-        state.setDesignDraft([{ text: content, type: 'html' }]);
-    }
+      if (!draftContainer.contentEditable) return;
+
+      const content = draftContainer.innerHTML;
+      const currentDraft = state.getDesignDraft();
+      // Only update if it's currently a single HTML block state
+      if (currentDraft.length === 1 && currentDraft[0].type === 'html') {
+          state.setDesignDraft([{ text: content, type: 'html' }]);
+      } else {
+          console.warn("Input event fired on non-editable or non-HTML draft state. Ignoring.");
+      }
   });
 
   cohereDraftBtn.addEventListener('click', async () => {
@@ -77,22 +93,26 @@ export function initDraftPanel(state) {
         return `${item.category || 'Concept'}: ${item.text}${item.description ? ` (${item.description})` : ''}`;
       }).join('\n---\n'); // Separate items clearly
 
+      if (!draftText.trim()) {
+          alert("Draft is empty. Add some ideas before cohering.");
+          return; // Exit early if draft is effectively empty
+      }
+
       const promptTemplate = COHERE_DRAFT;
       const filledPrompt = promptTemplate.replace('{{draftContent}}', draftText);
 
       const coherentDraft = await callLLMWithPrompt(filledPrompt);
 
-      const coherentHtml = `<div class="coherent-draft">${coherentDraft.replace(/\n/g, '<br>')}</div>`;
+      // Format as simple HTML - basic paragraph/line break handling
+      // More robust Markdown conversion could be used here if needed.
+      const coherentHtml = `<div class="coherent-draft">${coherentDraft.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</div>`.replace('<p><br>', '<p>');
+
       // Replace entire draft with the cohered HTML content
       state.setDesignDraft([{ text: coherentHtml, type: 'html' }]);
 
     } catch (error) {
       console.error('Error cohering draft:', error);
-      // Display error within the panel without overwriting content necessarily
-      const errorDiv = document.createElement('div');
-      errorDiv.className = 'error-message';
-      errorDiv.textContent = `Error cohering draft: ${error.message}`;
-      draftContainer.appendChild(errorDiv); // Append error message
+      alert(`Error cohering draft: ${error.message}`); // Show error to user
     } finally {
       cohereDraftBtn.disabled = false;
       cohereDraftBtn.textContent = 'Cohere Draft';
@@ -166,50 +186,85 @@ export function initDraftPanel(state) {
 
   // --- Rendering based on state ---
   state.subscribe('designDraft', (draft) => {
-    // Avoid disrupting user input if the content hasn't actually changed externally
-    // This check is complex if mixing HTML and chips. Let's simplify:
-    // Re-render fully unless the active element is the container AND it's pure HTML editing.
-    const isEditingHTML = document.activeElement === draftContainer && draft.length === 1 && draft[0]?.type === 'html';
+    draftContainer.innerHTML = ''; // Clear existing content
 
-    if (isEditingHTML && draftContainer.innerHTML === draft[0].text) {
-        // Content matches and user is editing, do nothing
+    // Case 1: Draft is a single HTML block (e.g., after cohering)
+    if (draft.length === 1 && draft[0]?.type === 'html') {
+        draftContainer.contentEditable = true; // Enable editing for HTML block
+        draftContainer.innerHTML = draft[0].text;
+        // Add a class to indicate it's raw HTML view vs categorized view? Optional.
+        draftContainer.classList.add('html-view');
+        draftContainer.classList.remove('categorized-view');
         return;
     }
 
-    draftContainer.innerHTML = ''; // Clear existing content
+    // Case 2: Draft is empty or contains chips (or is invalid - treat as empty)
+    draftContainer.contentEditable = false; // Disable editing for categorized view
+    draftContainer.classList.remove('html-view');
+    draftContainer.classList.add('categorized-view');
 
     if (draft.length === 0) {
       draftContainer.innerHTML = '<p class="empty-state">Drag ideas here or start typing to build your design draft</p>';
       return;
     }
 
-    draft.forEach((item, index) => {
-      if (item.type === 'html') {
-        // If HTML type, just append its content. Assumes only one HTML block for simplicity now.
-        draftContainer.innerHTML += item.text;
-      } else {
-        // Assume it's chip data
-        const chip = createChip({
-          text: item.text,
-          category: item.category,
-          tooltip: item.description || '',
-          // Dragging chips *within* the draft isn't implemented, but could be added later
-          // onDragStart: (event) => {
-          //   event.dataTransfer.setData('application/json', JSON.stringify(item));
-          //   event.dataTransfer.setData('text/plain', `${item.category || ''}: ${item.text}`);
-          // },
-          onDelete: () => {
-            state.removeFromDesignDraft(index);
-          }
+    // --- Group chips by category ---
+    const groupedChips = {};
+    const chipItems = draft.filter(item => item.type === 'chip'); // Process only chips
+
+    chipItems.forEach((item, index) => {
+        const category = getTopLevelCategory(item);
+        if (!groupedChips[category]) {
+            groupedChips[category] = [];
+        }
+        // Store the item and its original index in the draft array
+        groupedChips[category].push({ item, originalIndex: draft.indexOf(item) });
+    });
+
+    // --- Render categorized sections ---
+    // Sort categories alphabetically for consistent order
+    const sortedCategories = Object.keys(groupedChips).sort();
+
+    sortedCategories.forEach(categoryName => {
+        const chipsInCategory = groupedChips[categoryName];
+
+        // Create <details> element for the section
+        const detailsSection = document.createElement('details');
+        detailsSection.className = 'draft-category-section';
+        detailsSection.open = true; // Default to open
+
+        // Create <summary> element for the heading
+        const summaryHeading = document.createElement('summary');
+        const categoryClassName = getCategoryClassName(categoryName); // Get class for styling
+        summaryHeading.className = `draft-category-summary ${categoryClassName}`;
+        summaryHeading.textContent = `${categoryName} (${chipsInCategory.length})`;
+
+        // Create container for the chips within this section
+        const chipsContainerDiv = document.createElement('div');
+        chipsContainerDiv.className = 'chips-container';
+
+        // Create and append each chip
+        chipsInCategory.forEach(({ item, originalIndex }) => {
+            const chip = createChip({
+                text: item.text,
+                category: item.category, // Pass the original category for display/styling on chip itself
+                tooltip: item.description || '',
+                onDelete: () => {
+                    // Use the original index to remove from the state's draft array
+                    state.removeFromDesignDraft(originalIndex);
+                }
+                // Dragging chips *within* the draft isn't supported in this structure easily
+            });
+            chipsContainerDiv.appendChild(chip);
         });
-        draftContainer.appendChild(chip);
-        draftContainer.appendChild(document.createTextNode(' ')); // Add space between chips
-      }
+
+        detailsSection.appendChild(summaryHeading);
+        detailsSection.appendChild(chipsContainerDiv);
+        draftContainer.appendChild(detailsSection);
     });
   });
 
   // Initial render based on loaded state
-  const initialDraft = state.getDesignDraft();
   state.notifyListeners('designDraft'); // Trigger initial render explicitly
 
 }
