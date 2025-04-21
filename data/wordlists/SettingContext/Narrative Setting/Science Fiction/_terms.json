@@ -1,2 +1,9 @@
-[]
-
+  {
+    "text": "FTL Travel",
+    "description": "Faster-Than-Light travel, enabling interstellar journeys."
+  },
+  {
+    "text": "Artificial Intelligence",
+    "description": "Sentient or near-sentient computer programs or robots play a significant role."
+  }
+]

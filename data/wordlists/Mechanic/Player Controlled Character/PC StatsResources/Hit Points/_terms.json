@@ -1,2 +1,9 @@
-[]
-
+  {
+    "text": "Player Health",
+    "description": "The amount of damage a player character can sustain before being defeated."
+  },
+  {
+    "text": "Regenerating Health",
+    "description": "Health that replenishes automatically over time, often when out of combat."
+  }
+]
