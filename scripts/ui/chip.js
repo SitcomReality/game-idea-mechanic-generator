@@ -3,12 +3,17 @@ import { showTooltip, hideTooltip } from './tooltipManager.js';
 // Helper function to create CSS-friendly class names from categories
 function getCategoryClassName(categoryName) {
   if (!categoryName) return 'category-default';
-  return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
+  // Split by '.' and take the first part (top-level category)
+  const topLevelCategory = categoryName.split('.')[0];
+  // Convert to lowercase and replace spaces/slashes with hyphens
+  return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
 export function createChip({ text, category, tooltip = '', onDragStart, onDelete }) {
   const chip = document.createElement('div');
-  const categoryClassName = getCategoryClassName(category); // Generate class name
+  // Use the original category string for display, but the sanitized one for class
+  const displayCategory = category || ''; // Use the full path for display if needed
+  const categoryClassName = getCategoryClassName(category); // Generate class name based only on top level
   chip.className = `chip ${categoryClassName}`; // Add category class
   chip.draggable = true;
 
@@ -16,11 +21,11 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
   const contentDiv = document.createElement('div');
   contentDiv.className = 'chip-content';
 
-  // Category label (if provided)
-  if (category) {
+  // Category label (if provided) - Use the original category string for display text
+  if (displayCategory) {
     const categorySpan = document.createElement('span');
     categorySpan.className = 'chip-category';
-    categorySpan.textContent = category; // Just the category name
+    categorySpan.textContent = displayCategory; // Display the potentially full category path
     contentDiv.appendChild(categorySpan);
   }
 
@@ -70,6 +75,7 @@ export function createChip({ text, category, tooltip = '', onDragStart, onDelete
 
     copyBtn.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent drag start
+      // Use the tooltip text for copying
       navigator.clipboard.writeText(tooltip).then(() => {
         copyBtn.innerHTML = '✓'; // Checkmark for success
         copyBtn.title = 'Copied!';

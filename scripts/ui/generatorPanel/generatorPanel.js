@@ -25,10 +25,13 @@ function getAllTagPaths(taxonomy, currentPath = []) {
   return paths;
 }
 
-// Helper function to create CSS-friendly class names from categories
+// Helper function to create CSS-friendly class names from TOP-LEVEL categories
 function getCategoryClassName(categoryName) {
   if (!categoryName) return 'category-default';
-  return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
+  // Split by '.' and take the first part (top-level category)
+  const topLevelCategory = categoryName.split('.')[0];
+  // Convert to lowercase and replace spaces/slashes with hyphens
+  return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
 export function initGeneratorPanel(state) {
@@ -63,10 +66,11 @@ export function initGeneratorPanel(state) {
     Object.entries(taxonomy).forEach(([categoryName, categoryData]) => {
       // Create Tab Button
       const tabButton = document.createElement('button');
-      const categoryClassName = getCategoryClassName(categoryName); // Generate class name
+      // Use the top-level category name for the class
+      const categoryClassName = getCategoryClassName(categoryName);
       tabButton.className = `tab-button ${categoryClassName}`; // Add category class
       tabButton.textContent = categoryName;
-      tabButton.dataset.targetTab = categoryName.replace(/\s+/g, '-').toLowerCase(); // Create a unique ID
+      tabButton.dataset.targetTab = categoryName.replace(/[\s/]+/g, '-').toLowerCase(); // Create a unique ID
       tabButtonsContainer.appendChild(tabButton);
 
       // Create Tab Content Panel
@@ -263,46 +267,30 @@ export function initGeneratorPanel(state) {
       return;
     }
 
-    const groupedIdeas = ideas.reduce((acc, idea) => {
-      const category = idea.category || 'Uncategorized';
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(idea);
-      return acc;
-    }, {});
+    // Grouping is no longer needed for visual separation,
+    // as chips now handle their own category display.
+    // Directly render chips.
+    const chipsContainer = document.createElement('div');
+    chipsContainer.className = 'chip-container'; // Use a container if needed for spacing/layout
 
-    Object.entries(groupedIdeas).forEach(([category, categoryIdeas]) => {
-      const categoryDiv = document.createElement('div');
-      categoryDiv.className = 'idea-category';
-
-      const categoryHeader = document.createElement('h3');
-      categoryHeader.textContent = category;
-      categoryDiv.appendChild(categoryHeader);
-
-      const chipsContainer = document.createElement('div');
-      chipsContainer.className = 'chip-container';
-
-      categoryIdeas.forEach(idea => {
-        const chip = createChip({
-          text: idea.text,
-          category: idea.category,
-          tooltip: idea.description || '',
-          onDragStart: (event) => {
-            event.dataTransfer.setData('application/json', JSON.stringify(idea));
-          },
-          onDelete: () => {
-            const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);
-            state.setGeneratedIdeas(updatedIdeas);
-          }
-        });
-
-        chipsContainer.appendChild(chip);
+    ideas.forEach(idea => {
+      const chip = createChip({
+        text: idea.text,
+        category: idea.category, // Pass the full category path here
+        tooltip: idea.description || '',
+        onDragStart: (event) => {
+          event.dataTransfer.setData('application/json', JSON.stringify(idea));
+        },
+        onDelete: () => {
+          const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);
+          state.setGeneratedIdeas(updatedIdeas);
+        }
       });
-
-      categoryDiv.appendChild(chipsContainer);
-      ideasContainer.appendChild(categoryDiv);
+      chipsContainer.appendChild(chip);
     });
+
+    ideasContainer.appendChild(chipsContainer);
+
   });
 
   // Initialize components with current state
