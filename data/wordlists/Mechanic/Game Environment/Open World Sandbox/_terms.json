@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Player Housing",
+    "description": "Areas where players can construct and customize homes."
+  },
+  {
+    "text": "Dynamic Events",
+    "description": "Random occurrences trigger side missions."
+  }
+]

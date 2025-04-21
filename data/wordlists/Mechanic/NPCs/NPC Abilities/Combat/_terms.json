@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "text": "Enrage",
+    "description": "NPC becomes more powerful but less tactical"
+  },
+  {
+    "text": "Summon Minions",
+    "description": "NPC calls in reinforcements"
+  }
+]

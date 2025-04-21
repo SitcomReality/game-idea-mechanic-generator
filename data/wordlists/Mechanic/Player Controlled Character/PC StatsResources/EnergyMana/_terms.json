@@ -1,2 +1,11 @@
-[]
+[
+  {
+    "text": "Mana Pool",
+    "description": "A reservoir of magical energy that depletes as spells are cast."
+  },
+  {
+    "text": "Energy Regeneration",
+    "description": "Energy replenishes automatically over time, or through specific actions."
+  }
+]
 
