@@ -92,11 +92,11 @@ export async function generateGameTitleFromDraft(draftContent) {
       messages: [
         {
           role: "system",
-          content: "You are a creative copywriter specializing in naming video games. You generate catchy and relevant titles based on game concepts."
+          content: "You are a creative copywriter specializing in naming video games. You generate catchy and relevant titles based on game concepts. You will be provided with a description of a game (or some specific facets/mechanics) of a game and you should respond only with a suitable title."
         },
         {
           role: "user",
-          content: filledPrompt
+          content: "Invent a title for this game: " + filledPrompt
         }
       ],
       json: true 
