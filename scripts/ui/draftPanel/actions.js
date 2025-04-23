@@ -1,4 +1,3 @@
-// New file: scripts/ui/draftPanel/actions.js
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { COHERE_DRAFT } from '../../llm/prompts.js';
 import { showTooltip, hideTooltip } from '../tooltipManager.js';
@@ -57,14 +56,31 @@ export function initDraftActions(state) {
     // --- Cohere ---
     if (cohereDraftBtn) {
       cohereDraftBtn.addEventListener('click', async () => {
+          // --- Confirmation Step ---
+          const confirmationMessage = "Are you sure you want to cohere the draft?\n\n" +
+              "This action will replace your current idea chips with a single block of generated text. " +
+              "This process is irreversible.\n\n" +
+              "Consider saving your current draft first if you want to keep the editable chips.";
+
+          if (!window.confirm(confirmationMessage)) {
+              return; // User cancelled
+          }
+          // --- End Confirmation Step ---
+
           cohereDraftBtn.disabled = true;
           cohereDraftBtn.textContent = 'Processing...';
 
           try {
             const draft = state.getDesignDraft();
 
+            // Check if draft is already cohered HTML
+            if (draft.length === 1 && draft[0]?.type === 'html') {
+                alert("The draft has already been cohered. Clear the draft to add new chips or regenerate.");
+                return;
+            }
+
             const draftText = draft.map(item => {
-              if (item.type === 'html') {
+              if (item.type === 'html') { // Should not happen if check above works, but belt-and-suspenders
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = item.text;
                 return tempDiv.textContent || tempDiv.innerText || '';
