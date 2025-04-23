@@ -16,10 +16,12 @@ export function initDraftPanel(state) {
 
   // --- Rendering based on state ---
   // Subscribe to draft changes to trigger re-render
+  // The subscribe function in state.js calls the callback immediately with the current state,
+  // so the initial render is handled automatically.
   state.subscribe('designDraft', (draft) => {
     renderDesignDraft(draftContainer, draft, state, addChipBtn); // Pass addChipBtn
   });
 
-  // Initial render based on loaded state
-  state.notifyListeners('designDraft'); // Trigger initial render
+  // Initial render based on loaded state - REMOVED as subscribe handles it.
+  // state.notifyListeners('designDraft'); // Trigger initial render - THIS IS THE ERROR
 }
