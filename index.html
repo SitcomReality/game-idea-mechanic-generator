@@ -69,7 +69,7 @@
 
       <div class="generator-actions">
         <div class="control-group term-quantity-group">
-          <label for="term-quantity">Ideas:</label>
+          <label for="term-quantity">Terms:</label>
           <input type="range" id="term-quantity" min="1" max="10" value="3">
           <span id="term-quantity-display">3</span>
         </div>
@@ -80,11 +80,6 @@
     <section id="generated-ideas-panel" class="panel">
       <h2>Generated Ideas</h2>
       <div id="generated-ideas-container" class="results-container"></div>
-      <div class="panel-footer">
-         <button id="add-idea-btn" title="Add a custom idea chip">Add Idea</button>
-         <button id="load-ideas-btn" title="Load previously saved individual ideas">Load Saved Ideas</button>
-         <button id="clear-ideas-btn" class="danger-btn" title="Clear all generated ideas">Clear Ideas</button>
-      </div>
     </section>
 
     <section id="draft-panel" class="panel">
@@ -96,12 +91,11 @@
       </div>
       <div id="draft-container" class="editable-container"></div>
       <div class="draft-controls">
-        <button id="cohere-draft-btn" class="primary-btn" title="Use AI to turn chips into a coherent paragraph">Cohere Draft</button>
-        <button id="save-draft-btn" title="Save the current draft under the current title">Save</button>
-        <button id="load-draft-btn" title="Load a previously saved draft">Load</button>
-        <button id="export-draft-btn" title="Export current draft to a JSON file">Export</button>
-        <button id="import-draft-btn" title="Import a draft from a JSON file">Import</button>
-        <button id="clear-draft-btn" class="danger-btn" title="Clear the current draft content">Clear Draft</button>
+        <button id="add-chip-btn">Add Chip</button>
+        <button id="cohere-draft-btn" class="primary-btn">Cohere Draft</button>
+        <button id="clear-draft-btn" class="danger-btn">Clear Draft</button>
+        <button id="export-draft-btn">Export Draft</button>
+        <button id="import-draft-btn">Import Draft</button>
         <input type="file" id="import-draft-input" accept=".json" style="display: none;">
       </div>
     </section>
@@ -113,20 +107,18 @@
         <div class="control-group brief-type-group">
           <label>Brief Focus:</label>
           <select id="brief-type-select">
-            <option value="synopsis">Synopsis/Overview</option>
-            <option value="full" selected>Full Game Design Brief</option>
+            <option value="full" selected>Full Game Design</option>
             <option value="loop">Core Gameplay Loop</option>
             <option value="mechanics">Mechanics Focus</option>
             <option value="narrative">Narrative Outline</option>
           </select>
         </div>
         <div class="control-group brief-sections-group">
-          <label>Include Optional Sections (Brief only):</label>
+          <label>Include Sections:</label>
           <div id="brief-section-toggles">
             <label><input type="checkbox" data-section="targetAudience" checked> Target Audience</label>
             <label><input type="checkbox" data-section="technical" checked> Technical Requirements</label>
             <label><input type="checkbox" data-section="fileStructure"> File Structure Suggestion</label>
-            <label><input type="checkbox" data-section="vibeCoding"> AI Development (Vibe Coding)</label>
             <!-- Add more optional sections as needed -->
           </div>
         </div>
@@ -144,99 +136,45 @@
       <div id="brief-container" class="editable-container"></div>
       <div class="brief-controls">
         <button id="generate-brief-btn" class="primary-btn">Generate Brief</button>
-        <button id="copy-brief-btn" title="Copy brief content as Markdown">Copy</button>
-        <button id="download-brief-btn" title="Download brief content as a Markdown file">Download .md</button>
+        <button id="copy-brief-btn">Copy</button>
+        <button id="download-brief-btn">Download .md</button>
       </div>
     </section>
 
     <section id="image-panel" class="panel">
       <h2>Concept Art</h2>
-      <div class="image-tabs">
-        <button class="image-tab-button active" data-tab="image-source-tab">Source-Based Generation</button>
-        <button class="image-tab-button" data-tab="random-inspiration-tab">Random Inspiration</button>
-      </div>
-      
-      <div id="image-source-tab" class="image-tab-content active">
-        <div class="image-generation-options">
-          <h4>Image Generation Options:</h4>
-          <div class="control-group source-select-group">
-            <label>Image Prompt Source:</label>
-            <div class="radio-group">
-              <label><input type="radio" name="image-source" value="ideas" checked> Generated Ideas</label>
-              <label><input type="radio" name="image-source" value="draft"> Design Draft</label>
-              <label><input type="radio" name="image-source" value="brief"> Design Brief</label>
-            </div>
-          </div>
-          <div class="control-group aspect-ratio-group">
-            <label for="aspect-ratio-select">Aspect Ratio:</label>
-            <select id="aspect-ratio-select">
-              <option value="1:1" selected>1:1 (Square)</option>
-              <option value="16:9">16:9 (Widescreen)</option>
-              <option value="9:16">9:16 (Portrait)</option>
-              <option value="4:3">4:3 (Standard)</option>
-              <option value="3:4">3:4 (Tall)</option>
-              <option value="21:9">21:9 (Cinematic)</option>
-              <option value="9:21">9:21 (Tall Cinematic)</option>
-              <option value="3:2">3:2</option>
-              <option value="2:3">2:3</option>
-            </select>
-          </div>
-          <div class="control-group image-style-group">
-            <label for="image-style-input">Optional Style Modifiers:</label>
-            <input type="text" id="image-style-input" placeholder="e.g., pixel art, watercolor, cinematic lighting...">
+      <div class="image-generation-options">
+        <h4>Image Generation Options:</h4>
+        <div class="control-group source-select-group">
+          <label>Image Prompt Source:</label>
+          <div class="radio-group">
+            <label><input type="radio" name="image-source" value="ideas" checked> Generated Ideas</label>
+            <label><input type="radio" name="image-source" value="draft"> Design Draft</label>
+            <label><input type="radio" name="image-source" value="brief"> Design Brief</label>
           </div>
         </div>
-        <div class="image-generation-action">
-          <button id="generate-image-btn" class="primary-btn">Generate Image</button>
+        <div class="control-group aspect-ratio-group">
+          <label for="aspect-ratio-select">Aspect Ratio:</label>
+          <select id="aspect-ratio-select">
+            <option value="1:1" selected>1:1 (Square)</option>
+            <option value="16:9">16:9 (Widescreen)</option>
+            <option value="9:16">9:16 (Portrait)</option>
+            <option value="4:3">4:3 (Standard)</option>
+            <option value="3:4">3:4 (Tall)</option>
+            <option value="21:9">21:9 (Cinematic)</option>
+            <option value="9:21">9:21 (Tall Cinematic)</option>
+            <option value="3:2">3:2</option>
+            <option value="2:3">2:3</option>
+          </select>
+        </div>
+        <div class="control-group image-style-group">
+          <label for="image-style-input">Optional Style Modifiers:</label>
+          <input type="text" id="image-style-input" placeholder="e.g., pixel art, watercolor, cinematic lighting...">
         </div>
       </div>
-      
-      <div id="random-inspiration-tab" class="image-tab-content">
-        <div class="random-inspiration-options">
-          <h4>Random Inspiration Options:</h4>
-          <div class="control-group">
-            <label for="random-type-select">Type of Inspiration:</label>
-            <select id="random-type-select">
-              <option value="concept" selected>General Game Concept</option>
-              <option value="screenshot">Game Screenshot</option>
-              <option value="ui">UI/UX Design</option>
-              <option value="character">Game Character</option>
-              <option value="environment">Game Environment</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label for="random-style-select">Art Style:</label>
-            <select id="random-style-select">
-              <option value="any" selected>Any Style</option>
-              <option value="pixel art">Pixel Art</option>
-              <option value="3D rendered">3D Rendered</option>
-              <option value="hand-drawn">Hand-Drawn</option>
-              <option value="watercolor">Watercolor</option>
-              <option value="vector">Vector Art</option>
-              <option value="minimalist">Minimalist</option>
-              <option value="retro">Retro</option>
-            </select>
-          </div>
-          <div class="control-group">
-            <label for="random-aspect-ratio-select">Aspect Ratio:</label>
-            <select id="random-aspect-ratio-select">
-              <option value="1:1" selected>1:1 (Square)</option>
-              <option value="16:9">16:9 (Widescreen)</option>
-              <option value="9:16">9:16 (Portrait)</option>
-              <option value="4:3">4:3 (Standard)</option>
-              <option value="3:4">3:4 (Tall)</option>
-            </select>
-          </div>
-          <div class="random-tags-option">
-            <input type="checkbox" id="use-selected-tags">
-            <label for="use-selected-tags">Include selected tags from generator panel</label>
-          </div>
-        </div>
-        <div class="image-generation-action">
-          <button id="generate-random-prompt-btn" class="primary-btn">Generate Random Inspiration</button>
-        </div>
+      <div class="image-generation-action">
+        <button id="generate-image-btn" class="primary-btn">Generate Image</button>
       </div>
-      
       <div id="image-display-area">
         <div id="image-placeholder" class="image-placeholder">
           <span id="image-placeholder-text">Click "Generate Image" to create concept art</span>
@@ -293,87 +231,6 @@
       </form>
     </div>
   </div>
-
-  <!-- Modal for Adding a New Idea Chip -->
-  <div id="add-idea-modal" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title">Add New Idea</h3>
-        <button class="modal-close" id="add-idea-modal-close">&times;</button>
-      </div>
-      <form id="add-idea-form">
-        <div class="modal-body">
-          <div class="control-group">
-            <label for="idea-text-input">Idea Text (Required):</label>
-            <input type="text" id="idea-text-input" required>
-          </div>
-          <div class="control-group">
-            <label for="idea-details-input">Idea Details (Optional):</label>
-            <textarea id="idea-details-input"></textarea>
-          </div>
-          <div class="control-group">
-            <label for="idea-category-select">Category:</label>
-            <select id="idea-category-select">
-              <!-- Options will be populated dynamically -->
-              <option value="Uncategorized">Uncategorized</option>
-              <option value="__custom__">Other/Custom...</option>
-            </select>
-          </div>
-          <div class="control-group" id="idea-custom-category-group" style="display: none;">
-            <label for="idea-custom-category-input">Custom Category Name:</label>
-            <input type="text" id="idea-custom-category-input">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" id="add-idea-modal-cancel" class="secondary-btn">Cancel</button>
-          <button type="submit" class="primary-btn">Add Idea</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal for Loading a Saved Draft -->
-  <div id="load-draft-modal" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title">Load Saved Draft</h3>
-        <button class="modal-close" id="load-draft-modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Select a previously saved game draft to load:</p>
-        <ul id="saved-drafts-list">
-          <!-- Saved drafts will be listed here -->
-          <li class="empty-state">No saved drafts found.</li>
-        </ul>
-        <p id="local-storage-info" class="storage-info"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="load-draft-modal-cancel" class="secondary-btn">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal for Loading Saved Ideas -->
-  <div id="load-ideas-modal" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 class="modal-title">Load Saved Ideas</h3>
-        <button class="modal-close" id="load-ideas-modal-close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p>Select a previously saved idea chip to add it to the current 'Generated Ideas' list:</p>
-        <ul id="saved-ideas-list">
-          <!-- Saved ideas will be listed here -->
-          <li class="empty-state">No saved ideas found.</li>
-        </ul>
-        <p id="local-storage-info-ideas" class="storage-info"></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="load-ideas-modal-cancel" class="secondary-btn">Cancel</button>
-      </div>
-    </div>
-  </div>
-
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
