@@ -4,10 +4,7 @@ import { COHERE_DRAFT } from '../../llm/prompts.js';
 
 // Helper function to get top-level category name for grouping
 function getTopLevelCategory(item) {
-    let category = item.category || 'Uncategorized'; // Default if no category
-    // Normalize common short names first
-    if (category === 'Theme') category = 'Narrative Theme';
-    if (category === 'Setting') category = 'Setting/Context';
+    let category = normalizeCategoryName(item.category) || 'Uncategorized'; // Use normalization and default
     // Split by '.' and take the first part (top-level category)
     return category.split('.')[0];
 }
@@ -15,8 +12,17 @@ function getTopLevelCategory(item) {
 // Helper function to create CSS-friendly class names from categories
 function getCategoryClassName(categoryName) {
   if (!categoryName) return 'category-default';
+  // Use normalized top-level category
+  const topLevelCategory = getTopLevelCategory({ category: categoryName });
   // Convert to lowercase and replace spaces/slashes with hyphens
-  return `category-${categoryName.toLowerCase().replace(/[\s/]+/g, '-')}`;
+  return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
+}
+
+// Helper function to normalize category names (handles Theme/Setting)
+function normalizeCategoryName(categoryName) {
+  if (categoryName === 'Theme') return 'Narrative Theme';
+  if (categoryName === 'Setting') return 'Setting/Context';
+  return categoryName || 'Uncategorized'; // Fallback
 }
 
 export function initDraftPanel(state) {
@@ -27,6 +33,121 @@ export function initDraftPanel(state) {
   const importDraftBtn = document.getElementById('import-draft-btn');
   const importDraftInput = document.getElementById('import-draft-input'); // Hidden file input
 
+  // New elements for manual chip addition
+  const addChipBtn = document.getElementById('add-chip-btn');
+  const addChipModal = document.getElementById('add-chip-modal');
+  const addChipForm = document.getElementById('add-chip-form');
+  const chipTextInput = document.getElementById('chip-text-input');
+  const chipDetailsInput = document.getElementById('chip-details-input');
+  const chipCategorySelect = document.getElementById('chip-category-select');
+  const chipCustomCategoryGroup = document.getElementById('chip-custom-category-group');
+  const chipCustomCategoryInput = document.getElementById('chip-custom-category-input');
+  const addChipModalCloseBtn = document.getElementById('add-chip-modal-close');
+  const addChipModalCancelBtn = document.getElementById('add-chip-modal-cancel');
+
+  // --- Populate Category Select in Modal ---
+  function populateCategorySelect() {
+    const taxonomy = state.getTaxonomy();
+    // Clear existing options except the defaults
+    const existingOptions = chipCategorySelect.querySelectorAll('option:not([value="Uncategorized"]):not([value="__custom__"])');
+    existingOptions.forEach(option => option.remove());
+
+    // Get top-level categories
+    const topLevelCategories = Object.keys(taxonomy).sort();
+
+    // Create options and insert before the "Other/Custom" option
+    const customOption = chipCategorySelect.querySelector('option[value="__custom__"]');
+    topLevelCategories.forEach(categoryName => {
+      const option = document.createElement('option');
+      option.value = categoryName;
+      option.textContent = categoryName;
+      chipCategorySelect.insertBefore(option, customOption);
+    });
+  }
+
+  // Populate initially and subscribe to taxonomy changes (if dynamic taxonomy loading is ever added)
+  populateCategorySelect();
+  // Optional: If taxonomy could change later, subscribe:
+  // state.subscribe('taxonomy', populateCategorySelect);
+
+  // --- Modal Show/Hide Logic ---
+  function showAddChipModal() {
+    addChipForm.reset(); // Clear form on open
+    chipCustomCategoryGroup.style.display = 'none'; // Hide custom input initially
+    addChipModal.classList.add('active');
+    chipTextInput.focus();
+  }
+
+  function hideAddChipModal() {
+    addChipModal.classList.remove('active');
+  }
+
+  // --- Event Listeners ---
+
+  addChipBtn.addEventListener('click', showAddChipModal);
+  addChipModalCloseBtn.addEventListener('click', hideAddChipModal);
+  addChipModalCancelBtn.addEventListener('click', hideAddChipModal);
+
+  // Hide modal if backdrop is clicked
+  addChipModal.addEventListener('click', (event) => {
+    if (event.target === addChipModal) {
+      hideAddChipModal();
+    }
+  });
+
+  // Show/Hide Custom Category Input
+  chipCategorySelect.addEventListener('change', () => {
+    if (chipCategorySelect.value === '__custom__') {
+      chipCustomCategoryGroup.style.display = 'block';
+      chipCustomCategoryInput.required = true; // Make required if visible
+      chipCustomCategoryInput.focus();
+    } else {
+      chipCustomCategoryGroup.style.display = 'none';
+      chipCustomCategoryInput.required = false;
+      chipCustomCategoryInput.value = ''; // Clear value when hidden
+    }
+  });
+
+  // Handle Form Submission
+  addChipForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const text = chipTextInput.value.trim();
+    if (!text) {
+      alert('Chip text cannot be empty.');
+      chipTextInput.focus();
+      return;
+    }
+
+    const description = chipDetailsInput.value.trim();
+    let category = chipCategorySelect.value;
+
+    if (category === '__custom__') {
+      category = chipCustomCategoryInput.value.trim();
+      if (!category) {
+        alert('Please enter a custom category name.');
+        chipCustomCategoryInput.focus();
+        return;
+      }
+    }
+
+    // Ensure Uncategorized if somehow nothing is selected
+    if (!category) {
+        category = 'Uncategorized';
+    }
+
+    const newChipData = {
+      text,
+      description,
+      category: normalizeCategoryName(category), // Normalize before saving
+      type: 'chip' // Mark as chip type explicitly
+    };
+
+    state.addToDesignDraft(newChipData);
+    hideAddChipModal();
+  });
+
+  // --- Drag and Drop / Existing Logic ---
   draftContainer.addEventListener('dragover', (event) => {
     event.preventDefault();
     draftContainer.classList.add('drag-over');
@@ -47,7 +168,8 @@ export function initDraftPanel(state) {
         // Ensure we add the necessary fields for a chip
         const chipData = {
             text: idea.text,
-            category: idea.category,
+            // Normalize category on drop as well
+            category: normalizeCategoryName(idea.category),
             description: idea.description || '', // Make sure description exists
             type: 'chip' // Mark as chip type
         };
@@ -86,11 +208,14 @@ export function initDraftPanel(state) {
           return tempDiv.textContent || tempDiv.innerText || '';
         }
         // Format chip data clearly for the LLM
-        return `${item.category || 'Concept'}: ${item.text}${item.description ? ` (${item.description})` : ''}`;
+        // Use normalized category name for LLM prompt
+        return `${normalizeCategoryName(item.category) || 'Concept'}: ${item.text}${item.description ? ` (${item.description})` : ''}`;
       }).join('\n---\n'); // Separate items clearly
 
       if (!draftText.trim()) {
           alert("Draft is empty. Add some ideas before cohering.");
+          cohereDraftBtn.disabled = false; // Re-enable button
+          cohereDraftBtn.textContent = 'Cohere Draft';
           return; // Exit early if draft is effectively empty
       }
 
@@ -116,7 +241,7 @@ export function initDraftPanel(state) {
   });
 
   clearDraftBtn.addEventListener('click', () => {
-    if (window.confirm('Are you sure you want to clear the entire design draft? This cannot be undone.')) {
+    if (state.getDesignDraft().length > 0 && window.confirm('Are you sure you want to clear the entire design draft? This cannot be undone.')) {
       state.setDesignDraft([]);
     }
   });
@@ -189,6 +314,9 @@ export function initDraftPanel(state) {
         draftContainer.innerHTML = draft[0].text;
         draftContainer.classList.add('html-view');
         draftContainer.classList.remove('categorized-view');
+        // Disable Add Chip button when in HTML view
+        addChipBtn.disabled = true;
+        addChipBtn.title = "Cannot add chips while in cohered view. Clear draft to add new chips.";
         return;
     }
 
@@ -196,24 +324,31 @@ export function initDraftPanel(state) {
     draftContainer.contentEditable = false; // Disable editing for categorized view
     draftContainer.classList.remove('html-view');
     draftContainer.classList.add('categorized-view');
+    // Enable Add Chip button when in chip view
+    addChipBtn.disabled = false;
+    addChipBtn.title = "";
+
 
     if (draft.length === 0) {
-      draftContainer.innerHTML = '<p class="empty-state">Drag ideas here or start typing to build your design draft</p>';
+      draftContainer.innerHTML = '<p class="empty-state">Drag ideas here or click "Add Chip" to build your design draft</p>';
       return;
     }
 
     // --- Group chips by category ---
     const groupedChips = {};
     // Ensure we only process valid chip-like items
-    const chipItems = draft.filter(item => item && typeof item === 'object' && item.text);
+    const chipItems = draft.filter(item => item && typeof item === 'object' && item.text && item.type !== 'html');
 
     chipItems.forEach((item, index) => {
+        // Use normalized category name for grouping
         const category = getTopLevelCategory(item);
         if (!groupedChips[category]) {
             groupedChips[category] = [];
         }
         // Store the item and its original index in the draft array
-        groupedChips[category].push({ item, originalIndex: draft.indexOf(item) });
+        // Find original index in the FULL draft array, as chipItems is filtered
+        const originalIndex = draft.findIndex(draftItem => draftItem === item);
+        groupedChips[category].push({ item, originalIndex });
     });
 
     // --- Render categorized sections ---
@@ -225,10 +360,10 @@ export function initDraftPanel(state) {
 
         const detailsSection = document.createElement('details');
         detailsSection.className = 'draft-category-section';
-        detailsSection.open = true;
+        detailsSection.open = true; // Default to open
 
         const summaryHeading = document.createElement('summary');
-        const categoryClassName = getCategoryClassName(categoryName);
+        const categoryClassName = getCategoryClassName(categoryName); // Use helper for class
         summaryHeading.className = `draft-category-summary ${categoryClassName}`;
         summaryHeading.textContent = `${categoryName} (${chipsInCategory.length})`;
 
@@ -243,13 +378,14 @@ export function initDraftPanel(state) {
             }
             const chip = createChip({
                 text: item.text,
-                category: item.category,
+                category: normalizeCategoryName(item.category), // Pass normalized category
                 description: item.description || '', // Use description
                 onDelete: () => {
+                    // Make sure to remove using the correct original index
                     state.removeFromDesignDraft(originalIndex);
                 },
                 // Dragging chips *within* the draft isn't needed/supported here
-                onDragStart: null // Disable drag-start from within the draft panel? Maybe not.
+                onDragStart: null // Keep null for now
             });
             chipsContainerDiv.appendChild(chip);
         });

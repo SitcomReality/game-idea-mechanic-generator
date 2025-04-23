@@ -64,6 +64,10 @@
   padding: var(--spacing-m);
 }
 
+.modal-body .control-group:last-child {
+  margin-bottom: 0;
+}
+
 .modal-footer {
   padding: var(--spacing-m);
   border-top: 1px solid var(--border-color);
@@ -72,3 +76,13 @@
   gap: var(--spacing-s);
 }
 
+.secondary-btn {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color-light);
+  color: var(--text-secondary);
+}
+
+.secondary-btn:hover {
+  background-color: var(--bg-tertiary-light);
+  color: var(--text-primary);
+}
