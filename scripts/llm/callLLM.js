@@ -102,15 +102,14 @@ export async function generateGameTitleFromDraft(draftContent) {
       json: true 
     });
 
-    const titles = JSON.parse(completion.content);
+    const suggestedTitle = JSON.parse(completion.content);
 
-    if (!Array.isArray(titles) || titles.length === 0) {
-        console.warn("LLM did not return a valid array of titles, returning a default.", titles);
+    if (!suggestedTitle || suggestedTitle.length === 0) {
+        console.warn("LLM returned an empty string or didn't respond, using a default title.");
         return ["Generated Title", "Concept Quest", "Draft Dash"][Math.floor(Math.random() * 3)]; 
     }
 
-    const randomIndex = Math.floor(Math.random() * titles.length);
-    return titles[randomIndex];
+    return suggestedTitle;
 
   } catch (error) {
     console.error('Game title generation failed:', error);
