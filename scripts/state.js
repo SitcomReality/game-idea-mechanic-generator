@@ -11,9 +11,15 @@ export function initState() {
     try {
       const storedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
       if (storedDraft) {
-        // Basic validation: Ensure it's an array
+        // Basic validation: Ensure it's an array or a valid structure
         const parsed = JSON.parse(storedDraft);
-        return Array.isArray(parsed) ? parsed : [];
+        if (isValidDraftData(parsed)) { // Use validation on load
+             return parsed;
+        } else {
+            console.warn('Invalid draft data found in localStorage. Clearing.');
+            localStorage.removeItem(DRAFT_STORAGE_KEY);
+            return [];
+        }
       }
       return [];
     } catch (error) {
@@ -110,6 +116,7 @@ export function initState() {
       localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
     } catch (error) {
       console.error('Error saving design draft to localStorage:', error);
+      // Optionally notify the user or handle the error (e.g., if storage is full)
     }
   }
 
@@ -152,41 +159,56 @@ export function initState() {
   // Notify listeners of state changes
   function notifyListeners(key) {
     if (listeners[key]) {
-      listeners[key].forEach(listener => listener(_state[key]));
+      // Create a shallow copy of the state value to prevent accidental mutation
+      // For Sets and Arrays, this ensures listeners get a distinct copy.
+      let valueToNotify = _state[key];
+      if (valueToNotify instanceof Set) {
+          valueToNotify = new Set(valueToNotify);
+      } else if (Array.isArray(valueToNotify)) {
+          valueToNotify = [...valueToNotify];
+      } else if (typeof valueToNotify === 'object' && valueToNotify !== null) {
+          valueToNotify = { ...valueToNotify };
+      }
+      listeners[key].forEach(listener => listener(valueToNotify));
     }
   }
 
-  // Function to validate imported draft data
+  // Function to validate imported draft data (used for both file import and localStorage load)
   function isValidDraftData(data) {
     if (!Array.isArray(data)) {
-      console.error("Import failed: Data is not an array.");
+      console.error("Invalid draft data: Not an array.");
       return false;
     }
     for (const item of data) {
       if (typeof item !== 'object' || item === null) {
-        console.error("Import failed: Array contains non-object elements.");
+        console.error("Invalid draft data: Array contains non-object elements.", item);
         return false;
       }
       if (item.type === 'html') {
         if (typeof item.text !== 'string') {
-          console.error("Import failed: HTML item missing 'text' string.", item);
+          console.error("Invalid draft data: HTML item missing 'text' string.", item);
           return false;
         }
       } else {
         // Assuming chip-like object
         if (typeof item.text !== 'string') {
-          console.error("Import failed: Chip item missing 'text' string.", item);
+          console.error("Invalid draft data: Chip item missing 'text' string.", item);
           return false;
         }
         // Category and description are optional but should be strings if present
-        if (item.hasOwnProperty('category') && typeof item.category !== 'string') {
-          console.error("Import failed: Chip item has non-string 'category'.", item);
+        if (item.hasOwnProperty('category') && typeof item.category !== 'string' && item.category !== null) { // Allow null category
+          console.error("Invalid draft data: Chip item has non-string 'category'.", item);
           return false;
         }
          if (item.hasOwnProperty('description') && typeof item.description !== 'string') {
-          console.error("Import failed: Chip item has non-string 'description'.", item);
+          console.error("Invalid draft data: Chip item has non-string 'description'.", item);
           return false;
         }
+         // Check for explicit type 'chip' or infer if 'type' is missing
+         if (item.hasOwnProperty('type') && item.type !== 'chip' && item.type !== 'html') {
+             console.error("Invalid draft data: Item has unknown 'type'.", item);
+             return false;
+         }
       }
     }
     return true;
@@ -196,16 +218,16 @@ export function initState() {
   return {
     // Getters
     getTaxonomy: () => _state.taxonomy,
-    getSelectedTags: () => new Set(_state.selectedTags),
+    getSelectedTags: () => new Set(_state.selectedTags), // Return copy
     getTermQuantity: () => _state.termQuantity,
     getCustomText: () => _state.customText,
-    getGeneratedIdeas: () => [..._state.generatedIdeas],
-    getDesignDraft: () => [..._state.designDraft],
+    getGeneratedIdeas: () => [..._state.generatedIdeas], // Return copy
+    getDesignDraft: () => [..._state.designDraft], // Return copy
     getGameTitle: () => _state.gameTitle, // Add getter for game title
     getDesignBrief: () => _state.designBrief,
     getUseDraftContext: () => _state.useDraftContext,
-    getBriefOptions: () => ({ ..._state.briefOptions }),
-    getIdeaDetailLevel: () => _state.ideaDetailLevel, 
+    getBriefOptions: () => ({ ..._state.briefOptions }), // Return copy
+    getIdeaDetailLevel: () => _state.ideaDetailLevel,
 
     // Setters
     setTaxonomy: (taxonomy) => {
@@ -250,15 +272,23 @@ export function initState() {
     },
 
     removeFromDesignDraft: (index) => {
-      _state.designDraft.splice(index, 1);
-      saveDraftToStorage(_state.designDraft); 
-      notifyListeners('designDraft');
+      if (index >= 0 && index < _state.designDraft.length) {
+          _state.designDraft.splice(index, 1);
+          saveDraftToStorage(_state.designDraft); 
+          notifyListeners('designDraft');
+      } else {
+          console.warn(`Attempted to remove draft item at invalid index: ${index}`);
+      }
     },
 
     setDesignDraft: (draft) => {
-      _state.designDraft = draft;
-      saveDraftToStorage(_state.designDraft); 
-      notifyListeners('designDraft');
+      if (isValidDraftData(draft)) { // Validate before setting
+          _state.designDraft = draft;
+          saveDraftToStorage(_state.designDraft);
+          notifyListeners('designDraft');
+      } else {
+          console.error("Attempted to set invalid design draft. Operation cancelled.");
+      }
     },
 
     setGameTitle: (title) => { // Add setter for game title
@@ -323,16 +353,21 @@ export function initState() {
       }
     },
 
-    // Internal function exposed for specific use cases (like initial render)
-    notifyListeners: notifyListeners,
-
     // Subscription methods
     subscribe: (key, callback) => {
       if (listeners[key]) {
         listeners[key].push(callback);
-        // Immediately invoke with current state
+        // Immediately invoke with current state (using the notification mechanism to ensure copy)
         if (_state.hasOwnProperty(key)) {
-          callback(_state[key]);
+            let valueToNotify = _state[key];
+             if (valueToNotify instanceof Set) {
+                valueToNotify = new Set(valueToNotify);
+             } else if (Array.isArray(valueToNotify)) {
+                valueToNotify = [...valueToNotify];
+             } else if (typeof valueToNotify === 'object' && valueToNotify !== null) {
+                valueToNotify = { ...valueToNotify };
+            }
+            callback(valueToNotify);
         }
         // Return unsubscribe function
         return () => {
@@ -340,7 +375,7 @@ export function initState() {
         };
       }
       console.warn(`Attempted to subscribe to non-existent state key: ${key}`);
-      return () => {}; 
+      return () => {};
     }
   };
 }
