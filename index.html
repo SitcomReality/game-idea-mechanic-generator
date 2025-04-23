@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="styles/components/panel.css">
   <link rel="stylesheet" href="styles/components/tabs.css">
   <link rel="stylesheet" href="styles/components/imagePanel.css">
+  <!-- Add link for load draft modal CSS if created separately -->
   <script type="importmap">
     {
       "imports": {
@@ -93,10 +94,10 @@
       <div class="draft-controls">
         <button id="add-chip-btn">Add Chip</button>
         <button id="cohere-draft-btn" class="primary-btn">Cohere Draft</button>
+        <button id="save-draft-btn">Save Draft</button>
+        <button id="load-draft-btn">Load Draft</button>
         <button id="clear-draft-btn" class="danger-btn">Clear Draft</button>
-        <button id="export-draft-btn">Export Draft</button>
-        <button id="import-draft-btn">Import Draft</button>
-        <input type="file" id="import-draft-input" accept=".json" style="display: none;">
+        <!-- Removed Export/Import buttons and hidden input -->
       </div>
     </section>
 
@@ -231,6 +232,27 @@
       </form>
     </div>
   </div>
+
+  <!-- Modal for Loading a Saved Draft -->
+  <div id="load-draft-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Load Saved Draft</h3>
+        <button class="modal-close" id="load-draft-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Select a previously saved game draft to load:</p>
+        <ul id="saved-drafts-list">
+          <!-- Saved drafts will be listed here -->
+          <li class="empty-state">No saved drafts found.</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="load-draft-modal-cancel" class="secondary-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4c6229722a6346bc8eb5cb0e5eae5d41","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>

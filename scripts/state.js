@@ -1,44 +1,47 @@
 // Central state management for the application
 export function initState() {
-  const DRAFT_STORAGE_KEY = 'gimg_designDraft';
-  const TITLE_STORAGE_KEY = 'gimg_gameTitle'; // New key for game title
+  // const DRAFT_STORAGE_KEY = 'gimg_designDraft'; // No longer used for default load
+  const TITLE_STORAGE_KEY = 'gimg_gameTitle'; // Key for last opened game title
   const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
   const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; 
   const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel'; 
+  const DRAFT_KEY_PREFIX = 'gimg_draft_'; // Prefix for saved draft keys
 
-  // Load initial draft from localStorage
-  const initialDraft = (() => {
-    try {
-      const storedDraft = localStorage.getItem(DRAFT_STORAGE_KEY);
-      if (storedDraft) {
-        // Basic validation: Ensure it's an array or a valid structure
-        const parsed = JSON.parse(storedDraft);
-        if (isValidDraftData(parsed)) { // Use validation on load
-             return parsed;
-        } else {
-            console.warn('Invalid draft data found in localStorage. Clearing.');
-            localStorage.removeItem(DRAFT_STORAGE_KEY);
-            return [];
-        }
-      }
-      return [];
-    } catch (error) {
-      console.error('Error loading design draft from localStorage:', error);
-      localStorage.removeItem(DRAFT_STORAGE_KEY); // Clear invalid data
-      return [];
-    }
-  })();
+  // --- Initial State Loading ---
 
-  // Load initial game title from localStorage
+  // Load last opened game title, default to "Untitled Game"
   const initialGameTitle = (() => {
       try {
           const storedTitle = localStorage.getItem(TITLE_STORAGE_KEY);
-          return storedTitle || "Untitled Game"; // Default if not found or empty
+          return storedTitle || "Untitled Game";
       } catch (error) {
           console.error('Error loading game title from localStorage:', error);
-          localStorage.removeItem(TITLE_STORAGE_KEY); // Clear invalid data
+          localStorage.removeItem(TITLE_STORAGE_KEY); 
           return "Untitled Game";
       }
+  })();
+
+  // Load draft associated with the initial title, default to empty array
+  const initialDraft = (() => {
+    try {
+      const draftKey = DRAFT_KEY_PREFIX + initialGameTitle;
+      const storedDraft = localStorage.getItem(draftKey);
+      if (storedDraft) {
+        const parsed = JSON.parse(storedDraft);
+        if (isValidDraftData(parsed)) {
+             return parsed;
+        } else {
+            console.warn(`Invalid draft data found in localStorage for key ${draftKey}. Clearing.`);
+            localStorage.removeItem(draftKey);
+            return [];
+        }
+      }
+      return []; // No draft found for this title
+    } catch (error) {
+      console.error(`Error loading design draft for title "${initialGameTitle}" from localStorage:`, error);
+      localStorage.removeItem(DRAFT_KEY_PREFIX + initialGameTitle); // Clear potentially invalid data
+      return [];
+    }
   })();
 
   // Load initial draft context setting from localStorage
@@ -87,12 +90,12 @@ export function initState() {
     termQuantity: 3,
     customText: '',
     generatedIdeas: [],
-    designDraft: initialDraft, 
-    gameTitle: initialGameTitle, // Add game title to state
+    designDraft: initialDraft,
+    gameTitle: initialGameTitle,
     designBrief: '',
-    useDraftContext: initialUseDraftContext, 
-    briefOptions: initialBriefOptions, 
-    ideaDetailLevel: initialIdeaDetailLevel 
+    useDraftContext: initialUseDraftContext,
+    briefOptions: initialBriefOptions,
+    ideaDetailLevel: initialIdeaDetailLevel
   };
 
   // Subscription system
@@ -103,24 +106,57 @@ export function initState() {
     customText: [],
     generatedIdeas: [],
     designDraft: [],
-    gameTitle: [], // Add listener array for game title
+    gameTitle: [],
     designBrief: [],
     useDraftContext: [],
     briefOptions: [],
-    ideaDetailLevel: [] 
+    ideaDetailLevel: [],
+    savedDrafts: [] // Listener for changes in saved drafts list
   };
 
-  // Save draft to localStorage helper
-  function saveDraftToStorage(draft) {
+  // --- LocalStorage Interaction Helpers ---
+
+  // Save draft to localStorage under a specific title
+  function saveDraftToStorage(title, draft) {
     try {
-      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+      const draftKey = DRAFT_KEY_PREFIX + title;
+      if (!title || title.trim() === "") {
+        console.warn("Cannot save draft with empty title.");
+        return;
+      }
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+      // Also update the last opened title
+      saveGameTitleToStorage(title);
+      notifyListeners('savedDrafts'); // Notify that the list might have changed
     } catch (error) {
-      console.error('Error saving design draft to localStorage:', error);
-      // Optionally notify the user or handle the error (e.g., if storage is full)
+      console.error(`Error saving design draft "${title}" to localStorage:`, error);
     }
   }
 
-  // Save game title to localStorage helper
+  // Load draft from localStorage for a specific title
+  function loadDraftFromStorage(title) {
+    try {
+        const draftKey = DRAFT_KEY_PREFIX + title;
+        const storedDraft = localStorage.getItem(draftKey);
+        if (storedDraft) {
+            const parsed = JSON.parse(storedDraft);
+            if (isValidDraftData(parsed)) {
+                return parsed;
+            } else {
+                console.warn(`Invalid draft data found in localStorage for key ${draftKey}.`);
+                // localStorage.removeItem(draftKey); // Optionally clear invalid data on load attempt
+                return null; // Indicate failure
+            }
+        }
+        return null; // No draft found for this title
+    } catch (error) {
+        console.error(`Error loading design draft for title "${title}" from localStorage:`, error);
+        // localStorage.removeItem(DRAFT_KEY_PREFIX + title); // Optionally clear potentially invalid data
+        return null; // Indicate failure
+    }
+  }
+
+  // Save game title (last opened) to localStorage helper
   function saveGameTitleToStorage(title) {
       try {
           localStorage.setItem(TITLE_STORAGE_KEY, title);
@@ -160,9 +196,10 @@ export function initState() {
   function notifyListeners(key) {
     if (listeners[key]) {
       // Create a shallow copy of the state value to prevent accidental mutation
-      // For Sets and Arrays, this ensures listeners get a distinct copy.
       let valueToNotify = _state[key];
-      if (valueToNotify instanceof Set) {
+      if (key === 'savedDrafts') {
+          valueToNotify = getSavedGameTitles(); // Special case: notify with the list of titles
+      } else if (valueToNotify instanceof Set) {
           valueToNotify = new Set(valueToNotify);
       } else if (Array.isArray(valueToNotify)) {
           valueToNotify = [...valueToNotify];
@@ -173,7 +210,7 @@ export function initState() {
     }
   }
 
-  // Function to validate imported draft data (used for both file import and localStorage load)
+  // Function to validate draft data (used for load)
   function isValidDraftData(data) {
     if (!Array.isArray(data)) {
       console.error("Invalid draft data: Not an array.");
@@ -195,8 +232,7 @@ export function initState() {
           console.error("Invalid draft data: Chip item missing 'text' string.", item);
           return false;
         }
-        // Category and description are optional but should be strings if present
-        if (item.hasOwnProperty('category') && typeof item.category !== 'string' && item.category !== null) { // Allow null category
+        if (item.hasOwnProperty('category') && typeof item.category !== 'string' && item.category !== null) {
           console.error("Invalid draft data: Chip item has non-string 'category'.", item);
           return false;
         }
@@ -204,7 +240,6 @@ export function initState() {
           console.error("Invalid draft data: Chip item has non-string 'description'.", item);
           return false;
         }
-         // Check for explicit type 'chip' or infer if 'type' is missing
          if (item.hasOwnProperty('type') && item.type !== 'chip' && item.type !== 'html') {
              console.error("Invalid draft data: Item has unknown 'type'.", item);
              return false;
@@ -212,6 +247,18 @@ export function initState() {
       }
     }
     return true;
+  }
+
+  // Helper function to get all saved game titles
+  function getSavedGameTitles() {
+      const titles = [];
+      for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith(DRAFT_KEY_PREFIX)) {
+              titles.push(key.substring(DRAFT_KEY_PREFIX.length));
+          }
+      }
+      return titles.sort(); // Return sorted list
   }
 
   // Public API
@@ -223,13 +270,14 @@ export function initState() {
     getCustomText: () => _state.customText,
     getGeneratedIdeas: () => [..._state.generatedIdeas], // Return copy
     getDesignDraft: () => [..._state.designDraft], // Return copy
-    getGameTitle: () => _state.gameTitle, // Add getter for game title
+    getGameTitle: () => _state.gameTitle,
     getDesignBrief: () => _state.designBrief,
     getUseDraftContext: () => _state.useDraftContext,
     getBriefOptions: () => ({ ..._state.briefOptions }), // Return copy
     getIdeaDetailLevel: () => _state.ideaDetailLevel,
+    getSavedGameTitles: getSavedGameTitles, // Expose helper
 
-    // Setters
+    // Setters / Actions
     setTaxonomy: (taxonomy) => {
       _state.taxonomy = taxonomy;
       notifyListeners('taxonomy');
@@ -267,14 +315,16 @@ export function initState() {
 
     addToDesignDraft: (item) => {
       _state.designDraft.push(item);
-      saveDraftToStorage(_state.designDraft); 
+      // Don't auto-save on add, user must explicitly save
+      // saveDraftToStorage(_state.gameTitle, _state.designDraft);
       notifyListeners('designDraft');
     },
 
     removeFromDesignDraft: (index) => {
       if (index >= 0 && index < _state.designDraft.length) {
           _state.designDraft.splice(index, 1);
-          saveDraftToStorage(_state.designDraft); 
+          // Don't auto-save on remove
+          // saveDraftToStorage(_state.gameTitle, _state.designDraft);
           notifyListeners('designDraft');
       } else {
           console.warn(`Attempted to remove draft item at invalid index: ${index}`);
@@ -282,19 +332,23 @@ export function initState() {
     },
 
     setDesignDraft: (draft) => {
-      if (isValidDraftData(draft)) { // Validate before setting
+      if (isValidDraftData(draft)) {
           _state.designDraft = draft;
-          saveDraftToStorage(_state.designDraft);
+          // Don't auto-save on set (used by load etc)
+          // saveDraftToStorage(_state.gameTitle, _state.designDraft);
           notifyListeners('designDraft');
       } else {
           console.error("Attempted to set invalid design draft. Operation cancelled.");
       }
     },
 
-    setGameTitle: (title) => { // Add setter for game title
-        _state.gameTitle = title || "Untitled Game"; // Ensure not empty
-        saveGameTitleToStorage(_state.gameTitle);
+    setGameTitle: (title) => {
+        const cleanTitle = title ? title.trim() : '';
+        _state.gameTitle = cleanTitle || "Untitled Game"; // Ensure not empty
+        saveGameTitleToStorage(_state.gameTitle); // Save last opened title immediately
         notifyListeners('gameTitle');
+        // Note: This does NOT automatically load the draft for the new title.
+        // Load must be explicit via loadDraftByTitle.
     },
 
     setDesignBrief: (brief) => {
@@ -304,14 +358,14 @@ export function initState() {
 
     setUseDraftContext: (useContext) => {
       _state.useDraftContext = useContext;
-      saveDraftContextSettingToStorage(useContext); 
+      saveDraftContextSettingToStorage(useContext);
       notifyListeners('useDraftContext');
     },
 
     setBriefOption: (optionKey, value) => {
       if (_state.briefOptions.hasOwnProperty(optionKey)) {
           _state.briefOptions[optionKey] = value;
-          saveBriefOptionsToStorage(_state.briefOptions); 
+          saveBriefOptionsToStorage(_state.briefOptions);
           notifyListeners('briefOptions');
       } else {
           console.warn(`Attempted to set unknown brief option: ${optionKey}`);
@@ -321,39 +375,27 @@ export function initState() {
     setIdeaDetailLevel: (level) => {
       if (['brief', 'standard', 'detailed'].includes(level)) {
         _state.ideaDetailLevel = level;
-        saveIdeaDetailLevelToStorage(level); 
+        saveIdeaDetailLevelToStorage(level);
         notifyListeners('ideaDetailLevel');
       } else {
         console.warn(`Attempted to set invalid idea detail level: ${level}`);
       }
     },
 
-    // Import/Export
-    exportDesignDraft: () => {
-        // Exporting only the draft content, title is handled separately by state persistence
-        return JSON.stringify(_state.designDraft, null, 2); 
+    saveDesignDraft: (title) => {
+      saveDraftToStorage(title, _state.designDraft);
     },
 
-    importDesignDraft: (jsonData) => {
-      // Importing only draft content, title remains as is unless user changes it
-      try {
-        const data = JSON.parse(jsonData);
-        if (isValidDraftData(data)) {
-          _state.designDraft = data;
-          saveDraftToStorage(_state.designDraft);
-          notifyListeners('designDraft');
-          return true; 
-        } else {
-          // Validation errors logged in isValidDraftData
-          return false; 
-        }
-      } catch (error) {
-        console.error('Error parsing imported draft data:', error);
-        return false; 
+    loadDraftByTitle: (title) => {
+      const draft = loadDraftFromStorage(title);
+      if (draft) {
+        _state.designDraft = draft;
+        notifyListeners('designDraft');
+      } else {
+        console.error(`Failed to load draft for title "${title}"`);
       }
     },
 
-    // Subscription methods
     subscribe: (key, callback) => {
       if (listeners[key]) {
         listeners[key].push(callback);
