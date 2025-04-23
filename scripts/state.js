@@ -261,6 +261,17 @@ export function initState() {
       return titles.sort(); // Return sorted list
   }
 
+  // Helper function to delete a draft from local storage
+  function deleteDraftFromStorage(title) {
+    try {
+        const draftKey = DRAFT_KEY_PREFIX + title;
+        localStorage.removeItem(draftKey);
+        notifyListeners('savedDrafts'); // Notify that the list has changed
+    } catch (error) {
+        console.error(`Error deleting draft "${title}" from localStorage:`, error);
+    }
+  }
+
   // Public API
   return {
     // Getters
@@ -276,6 +287,7 @@ export function initState() {
     getBriefOptions: () => ({ ..._state.briefOptions }), // Return copy
     getIdeaDetailLevel: () => _state.ideaDetailLevel,
     getSavedGameTitles: getSavedGameTitles, // Expose helper
+    isValidDraftData: isValidDraftData, // Expose validation function
 
     // Setters / Actions
     setTaxonomy: (taxonomy) => {
@@ -386,14 +398,37 @@ export function initState() {
       saveDraftToStorage(title, _state.designDraft);
     },
 
+    saveCurrentDraftUnderTitle: (title) => { 
+        const draft = _state.designDraft;
+        saveDraftToStorage(title, draft);
+        // Update the last opened title as well
+        _state.gameTitle = title;
+        saveGameTitleToStorage(title);
+        notifyListeners('gameTitle'); // Notify title change
+    },
+
     loadDraftByTitle: (title) => {
       const draft = loadDraftFromStorage(title);
       if (draft) {
         _state.designDraft = draft;
+        _state.gameTitle = title; // Also update the current game title
+        saveGameTitleToStorage(title); // Remember this as the last opened
         notifyListeners('designDraft');
+        notifyListeners('gameTitle');
       } else {
         console.error(`Failed to load draft for title "${title}"`);
+        // Should we clear the draft or leave it as is on failure? Leaving it for now.
       }
+    },
+
+    deleteDraftByTitle: (title) => { 
+      deleteDraftFromStorage(title);
+      // If the deleted draft was the currently loaded one, reset title?
+      // if (_state.gameTitle === title) {
+      //   _state.gameTitle = "Untitled Game";
+      //   saveGameTitleToStorage(_state.gameTitle);
+      //   notifyListeners('gameTitle');
+      // }
     },
 
     subscribe: (key, callback) => {
