@@ -87,7 +87,7 @@
   color: var(--text-primary);
 }
 
-#saved-ideas-list {
+#saved-drafts-list, #saved-ideas-list {
   list-style: none;
   padding: 0;
   margin: var(--spacing-m) 0 0 0;
@@ -98,7 +98,7 @@
   background-color: var(--bg-primary);
 }
 
-.saved-idea-item {
+.saved-draft-item, .saved-idea-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -107,15 +107,15 @@
   transition: background-color 0.2s ease;
 }
 
-.saved-idea-item:last-child {
+.saved-draft-item:last-child, .saved-idea-item:last-child {
   border-bottom: none;
 }
 
-.saved-idea-item:hover {
+.saved-draft-item:hover, .saved-idea-item:hover {
   background-color: var(--bg-tertiary);
 }
 
-.saved-idea-content {
+.saved-draft-title, .saved-idea-content {
   flex-grow: 1;
   cursor: pointer;
   margin-right: var(--spacing-m);
@@ -123,8 +123,13 @@
   transition: color 0.2s ease;
 }
 
-.saved-idea-content:hover {
+.saved-draft-title:hover, .saved-idea-content:hover {
   color: var(--accent-primary);
+}
+
+.saved-draft-title {
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .saved-idea-content .saved-idea-category {
@@ -141,7 +146,7 @@
   font-weight: bold;
 }
 
-.saved-idea-delete-btn {
+.saved-draft-delete-btn, .saved-idea-delete-btn {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
@@ -149,6 +154,14 @@
   font-size: 0.9rem;
   line-height: 1;
   border-radius: 50%;
+  background-color: rgba(255, 92, 92, 0.1);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.saved-draft-delete-btn:hover, .saved-idea-delete-btn:hover {
+  background-color: var(--danger);
+  color: var(--bg-primary);
 }
 
 .storage-info {
