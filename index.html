@@ -84,6 +84,11 @@
 
     <section id="draft-panel" class="panel">
       <h2>Design Draft</h2>
+      <div class="draft-title-container">
+        <label for="draft-title">Game Title:</label>
+        <div contenteditable="true" id="draft-title" class="editable-title" spellcheck="false">Untitled Game</div>
+        <button id="generate-title-btn" class="icon-btn" title="Generate Random Title">🎲</button>
+      </div>
       <div id="draft-container" class="editable-container"></div>
       <div class="draft-controls">
         <button id="add-chip-btn">Add Chip</button>
@@ -91,7 +96,7 @@
         <button id="clear-draft-btn" class="danger-btn">Clear Draft</button>
         <button id="export-draft-btn">Export Draft</button>
         <button id="import-draft-btn">Import Draft</button>
-        <input type="file" id="import-draft-input" accept=".json" style="display: none;"> 
+        <input type="file" id="import-draft-input" accept=".json" style="display: none;">
       </div>
     </section>
 

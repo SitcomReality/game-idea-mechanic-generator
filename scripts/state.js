@@ -1,6 +1,7 @@
 // Central state management for the application
 export function initState() {
   const DRAFT_STORAGE_KEY = 'gimg_designDraft';
+  const TITLE_STORAGE_KEY = 'gimg_gameTitle'; // New key for game title
   const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
   const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; 
   const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel'; 
@@ -20,6 +21,18 @@ export function initState() {
       localStorage.removeItem(DRAFT_STORAGE_KEY); // Clear invalid data
       return [];
     }
+  })();
+
+  // Load initial game title from localStorage
+  const initialGameTitle = (() => {
+      try {
+          const storedTitle = localStorage.getItem(TITLE_STORAGE_KEY);
+          return storedTitle || "Untitled Game"; // Default if not found or empty
+      } catch (error) {
+          console.error('Error loading game title from localStorage:', error);
+          localStorage.removeItem(TITLE_STORAGE_KEY); // Clear invalid data
+          return "Untitled Game";
+      }
   })();
 
   // Load initial draft context setting from localStorage
@@ -69,6 +82,7 @@ export function initState() {
     customText: '',
     generatedIdeas: [],
     designDraft: initialDraft, 
+    gameTitle: initialGameTitle, // Add game title to state
     designBrief: '',
     useDraftContext: initialUseDraftContext, 
     briefOptions: initialBriefOptions, 
@@ -83,6 +97,7 @@ export function initState() {
     customText: [],
     generatedIdeas: [],
     designDraft: [],
+    gameTitle: [], // Add listener array for game title
     designBrief: [],
     useDraftContext: [],
     briefOptions: [],
@@ -96,6 +111,15 @@ export function initState() {
     } catch (error) {
       console.error('Error saving design draft to localStorage:', error);
     }
+  }
+
+  // Save game title to localStorage helper
+  function saveGameTitleToStorage(title) {
+      try {
+          localStorage.setItem(TITLE_STORAGE_KEY, title);
+      } catch (error) {
+          console.error('Error saving game title to localStorage:', error);
+      }
   }
 
   // Save draft context setting to localStorage helper
@@ -177,6 +201,7 @@ export function initState() {
     getCustomText: () => _state.customText,
     getGeneratedIdeas: () => [..._state.generatedIdeas],
     getDesignDraft: () => [..._state.designDraft],
+    getGameTitle: () => _state.gameTitle, // Add getter for game title
     getDesignBrief: () => _state.designBrief,
     getUseDraftContext: () => _state.useDraftContext,
     getBriefOptions: () => ({ ..._state.briefOptions }),
@@ -236,6 +261,12 @@ export function initState() {
       notifyListeners('designDraft');
     },
 
+    setGameTitle: (title) => { // Add setter for game title
+        _state.gameTitle = title || "Untitled Game"; // Ensure not empty
+        saveGameTitleToStorage(_state.gameTitle);
+        notifyListeners('gameTitle');
+    },
+
     setDesignBrief: (brief) => {
       _state.designBrief = brief;
       notifyListeners('designBrief');
@@ -269,10 +300,12 @@ export function initState() {
 
     // Import/Export
     exportDesignDraft: () => {
+        // Exporting only the draft content, title is handled separately by state persistence
         return JSON.stringify(_state.designDraft, null, 2); 
     },
 
     importDesignDraft: (jsonData) => {
+      // Importing only draft content, title remains as is unless user changes it
       try {
         const data = JSON.parse(jsonData);
         if (isValidDraftData(data)) {

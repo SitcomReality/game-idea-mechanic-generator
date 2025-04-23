@@ -1,3 +1,5 @@
+export const GENERATE_GAME_TITLE = 'Generate a game title based on the following draft content: {{draftContent}}';
+
 export async function callLLMWithPrompt(prompt) {
   try {
     const completion = await websim.chat.completions.create({
@@ -74,5 +76,44 @@ export async function generateGameIdea(parameters) {
   } catch (error) {
     console.error('Game idea generation failed:', error);
     throw new Error(`Failed to generate game ideas: ${error.message}`);
+  }
+}
+
+export async function generateGameTitleFromDraft(draftContent) {
+  try {
+    if (!draftContent || draftContent.trim() === '') {
+        throw new Error("Draft content is empty, cannot generate title.");
+    }
+
+    const promptTemplate = GENERATE_GAME_TITLE; 
+    const filledPrompt = promptTemplate.replace('{{draftContent}}', draftContent);
+
+    const completion = await websim.chat.completions.create({
+      messages: [
+        {
+          role: "system",
+          content: "You are a creative copywriter specializing in naming video games. You generate catchy and relevant titles based on game concepts."
+        },
+        {
+          role: "user",
+          content: filledPrompt
+        }
+      ],
+      json: true 
+    });
+
+    const titles = JSON.parse(completion.content);
+
+    if (!Array.isArray(titles) || titles.length === 0) {
+        console.warn("LLM did not return a valid array of titles, returning a default.", titles);
+        return ["Generated Title", "Concept Quest", "Draft Dash"][Math.floor(Math.random() * 3)]; 
+    }
+
+    const randomIndex = Math.floor(Math.random() * titles.length);
+    return titles[randomIndex];
+
+  } catch (error) {
+    console.error('Game title generation failed:', error);
+    return ["Creative Spark", "Concept Forge", "Idea Prime"][Math.floor(Math.random() * 3)];
   }
 }

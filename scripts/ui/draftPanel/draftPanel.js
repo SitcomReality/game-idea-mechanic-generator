@@ -1,6 +1,7 @@
 import { createChip } from '../chip.js';
-import { callLLMWithPrompt } from '../../llm/callLLM.js';
+import { callLLMWithPrompt, generateGameTitleFromDraft } from '../../llm/callLLM.js';
 import { COHERE_DRAFT } from '../../llm/prompts.js';
+import { showTooltip, hideTooltip } from '../tooltipManager.js';
 
 // Helper function to get top-level category name for grouping
 function getTopLevelCategory(item) {
@@ -27,6 +28,8 @@ function normalizeCategoryName(categoryName) {
 
 export function initDraftPanel(state) {
   const draftContainer = document.getElementById('draft-container');
+  const draftTitleElement = document.getElementById('draft-title'); // Title element
+  const generateTitleBtn = document.getElementById('generate-title-btn'); // Title generation button
   const cohereDraftBtn = document.getElementById('cohere-draft-btn');
   const clearDraftBtn = document.getElementById('clear-draft-btn');
   const exportDraftBtn = document.getElementById('export-draft-btn');
@@ -146,6 +149,68 @@ export function initDraftPanel(state) {
     state.addToDesignDraft(newChipData);
     hideAddChipModal();
   });
+
+  // --- Event Listeners for Title ---
+  draftTitleElement.addEventListener('blur', () => {
+      const newTitle = draftTitleElement.textContent.trim();
+      if (newTitle !== state.getGameTitle()) {
+          state.setGameTitle(newTitle || "Untitled Game"); // Update state on blur if changed
+      }
+  });
+
+  // Prevent newline characters in title on paste/enter
+  draftTitleElement.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+          event.preventDefault(); // Prevent new line
+          draftTitleElement.blur(); // Trigger blur to save
+      }
+  });
+  draftTitleElement.addEventListener('paste', (event) => {
+    event.preventDefault();
+    const text = (event.clipboardData || window.clipboardData).getData('text/plain');
+    // Insert text without line breaks
+    document.execCommand('insertText', false, text.replace(/(\r\n|\n|\r)/gm, " "));
+  });
+
+  generateTitleBtn.addEventListener('click', async () => {
+    generateTitleBtn.disabled = true;
+    generateTitleBtn.classList.add('loading'); // Add loading class for spinner
+
+    try {
+        const draft = state.getDesignDraft();
+        // Format draft content for the title generation prompt
+        const draftText = draft.map(item => {
+            if (item.type === 'html') {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = item.text;
+                return tempDiv.textContent || tempDiv.innerText || '';
+            }
+            return `${normalizeCategoryName(item.category) || 'Concept'}: ${item.text}${item.description ? ` (${item.description})` : ''}`;
+        }).join('\n');
+
+        if (!draftText.trim()) {
+            alert("Draft is empty. Add some ideas before generating a title.");
+            return; // Exit early
+        }
+
+        const generatedTitle = await generateGameTitleFromDraft(draftText);
+        draftTitleElement.textContent = generatedTitle; // Update the UI element
+        state.setGameTitle(generatedTitle); // Update the state
+
+    } catch (error) {
+        console.error('Error generating title:', error);
+        alert(`Error generating title: ${error.message}`);
+    } finally {
+        generateTitleBtn.disabled = false;
+        generateTitleBtn.classList.remove('loading'); // Remove loading class
+    }
+  });
+
+    // Tooltip for generate title button
+    generateTitleBtn.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, 'Generate a game title based on the current draft'));
+    generateTitleBtn.addEventListener('mouseleave', hideTooltip);
+    generateTitleBtn.addEventListener('focus', (e) => showTooltip(e.currentTarget, 'Generate a game title based on the current draft'));
+    generateTitleBtn.addEventListener('blur', hideTooltip);
 
   // --- Drag and Drop / Existing Logic ---
   draftContainer.addEventListener('dragover', (event) => {
@@ -305,8 +370,15 @@ export function initDraftPanel(state) {
   });
 
   // --- Rendering based on state ---
+  state.subscribe('gameTitle', (title) => {
+      if (document.activeElement !== draftTitleElement) { // Avoid interrupting typing
+          draftTitleElement.textContent = title;
+      }
+  });
+
   state.subscribe('designDraft', (draft) => {
-    draftContainer.innerHTML = ''; // Clear existing content
+    // Clear only the *chip container*, leave the title section untouched
+    draftContainer.innerHTML = '';
 
     // Case 1: Draft is a single HTML block (e.g., after cohering)
     if (draft.length === 1 && draft[0]?.type === 'html') {
@@ -397,5 +469,6 @@ export function initDraftPanel(state) {
   });
 
   // Initial render based on loaded state
-  state.notifyListeners('designDraft');
+  draftTitleElement.textContent = state.getGameTitle(); // Set initial title
+  state.notifyListeners('designDraft'); // Render draft content
 }

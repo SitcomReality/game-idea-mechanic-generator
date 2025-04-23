@@ -53,3 +53,18 @@ Based on the following game concept description (which could be raw ideas, a des
 - Output *only* the generated image prompt text, and nothing else.
 `;
 
+export const GENERATE_GAME_TITLE = `
+Analyze the following game design elements, which represent a draft of a game concept.
+
+**Game Design Elements:**
+---
+{{draftContent}}
+---
+
+**Instructions:**
+- Generate 5 creative, catchy, and relevant potential titles for this game concept.
+- Consider the core mechanics, theme, setting, and overall mood implied by the elements.
+- Aim for titles that are memorable and hint at the player experience.
+- Format the output as a JSON array of strings.
+- Output *only* the JSON array, and nothing else.
+`;
