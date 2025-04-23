@@ -10,6 +10,34 @@ function normalizeCategoryName(categoryName) {
   return categoryName || 'Uncategorized'; // Fallback
 }
 
+// Helper function to estimate localStorage usage
+function getLocalStorageUsage() {
+    let totalBytes = 0;
+    const storageLimitBytes = 5 * 1024 * 1024; // Estimate 5MB limit
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        // Estimate bytes: key length + value length (UTF-16 characters are 2 bytes each)
+        if (key && value) {
+             totalBytes += (key.length + value.length) * 2;
+        }
+    }
+
+    const usedMB = (totalBytes / (1024 * 1024)).toFixed(2);
+    const limitMB = (storageLimitBytes / (1024 * 1024)).toFixed(2);
+    const percentageUsed = ((totalBytes / storageLimitBytes) * 100).toFixed(1);
+
+    return {
+        usedMB,
+        limitMB,
+        percentageUsed,
+        totalBytes,
+        storageLimitBytes
+    };
+}
+
+
 export function initDraftActions(state) {
     const cohereDraftBtn = document.getElementById('cohere-draft-btn');
     const clearDraftBtn = document.getElementById('clear-draft-btn');
@@ -24,6 +52,7 @@ export function initDraftActions(state) {
     const loadDraftModalCloseBtn = document.getElementById('load-draft-modal-close');
     const loadDraftModalCancelBtn = document.getElementById('load-draft-modal-cancel');
     const savedDraftsList = document.getElementById('saved-drafts-list');
+    const localStorageInfoElement = document.getElementById('local-storage-info'); // Get the new element
 
     // --- Cohere ---
     if (cohereDraftBtn) {
@@ -52,7 +81,9 @@ export function initDraftActions(state) {
             const filledPrompt = promptTemplate.replace('{{draftContent}}', draftText);
 
             const coherentDraft = await callLLMWithPrompt(filledPrompt);
-            const coherentHtml = `<div class="coherent-draft">${coherentDraft.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</div>`.replace('<p><br>', '<p>');
+            // Simple markdown to basic HTML conversion (needs improvement for lists, etc.)
+            const coherentHtml = `<div class="coherent-draft"><p>${coherentDraft.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>')}</p></div>`.replace(/<p><br><\/p>/g, '').replace('<p><p>', '<p>'); // Clean up potential empty paragraphs
+
             state.setDesignDraft([{ text: coherentHtml, type: 'html' }]);
 
           } catch (error) {
@@ -108,6 +139,11 @@ export function initDraftActions(state) {
     // --- Load Modal Logic ---
     function showLoadDraftModal() {
         populateSavedDraftsList();
+        // Calculate and display storage usage
+        const usage = getLocalStorageUsage();
+        if (localStorageInfoElement) {
+            localStorageInfoElement.textContent = `Storage Used: ${usage.usedMB} MB / ${usage.limitMB} MB (${usage.percentageUsed}%)`;
+        }
         loadDraftModal.classList.add('active');
     }
 
@@ -149,6 +185,11 @@ export function initDraftActions(state) {
                 if (window.confirm(`Are you sure you want to permanently delete the draft "${title}"?`)) {
                     state.deleteDraftByTitle(title);
                     populateSavedDraftsList(); // Re-populate the list after deletion
+                    // Update storage info after deletion
+                     const usage = getLocalStorageUsage();
+                     if (localStorageInfoElement) {
+                         localStorageInfoElement.textContent = `Storage Used: ${usage.usedMB} MB / ${usage.limitMB} MB (${usage.percentageUsed}%)`;
+                     }
                 }
             });
 
@@ -193,7 +234,7 @@ export function initDraftActions(state) {
             const a = document.createElement('a');
             a.href = url;
             // Create a filename from the title
-            const filename = currentTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'untitled_game_draft';
+            const filename = (currentTitle || 'untitled_game').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '_draft';
             a.download = `${filename}.json`;
             document.body.appendChild(a);
             a.click();
@@ -233,7 +274,7 @@ export function initDraftActions(state) {
                     state.setDesignDraft(importedDraft);
                     // Extract filename to suggest a title?
                     const filenameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-                    const suggestedTitle = filenameWithoutExt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Basic title case
+                    const suggestedTitle = filenameWithoutExt.replace(/_draft$/i, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()); // Basic title case, remove _draft suffix
                     if (suggestedTitle && suggestedTitle !== state.getGameTitle()) {
                         if (window.confirm(`Update game title to "${suggestedTitle}" based on filename?`)) {
                             state.setGameTitle(suggestedTitle);

@@ -136,3 +136,12 @@
   line-height: 1;
   border-radius: 50%;
 }
+
+.storage-info {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: right;
+  margin-top: var(--spacing-m);
+  padding-top: var(--spacing-s);
+  border-top: 1px dashed var(--border-color-light);
+}
