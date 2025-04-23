@@ -124,7 +124,7 @@
   display: block;
 }
 
-.chip-delete, .chip-copy {
+.chip-delete, .chip-copy, .chip-save {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -138,7 +138,7 @@
   flex-shrink: 0;
 }
 
-.chip-delete:active, .chip-copy:active {
+.chip-delete:active, .chip-copy:active, .chip-save:active {
   transform: scale(0.9);
 }
 
@@ -163,6 +163,18 @@
 
 .chip-copy:hover {
   background-color: var(--accent-primary);
+  color: var(--bg-primary);
+}
+
+.chip-save {
+  background-color: rgba(48, 160, 160, 0.1);
+  color: var(--accent-alt);
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.chip-save:hover {
+  background-color: var(--accent-alt);
   color: var(--bg-primary);
 }
 

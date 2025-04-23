@@ -2,22 +2,20 @@ import { renderTagTree } from '../tagTree.js';
 import { createChip } from '../chip.js';
 import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
 import { showTooltip, hideTooltip } from '../tooltipManager.js';
+import { initLoadIdeasModal } from './loadIdeasModal.js';
 
-// Helper function to recursively flatten the taxonomy into a list of selectable tag paths
 function getAllTagPaths(taxonomy, currentPath = []) {
   let paths = [];
   if (!taxonomy || typeof taxonomy !== 'object') {
-    return paths; // Should not happen with valid taxonomy, but good safeguard
+    return paths; 
   }
 
   Object.entries(taxonomy).forEach(([key, value]) => {
     const newPath = [...currentPath, key];
     const pathString = newPath.join('.');
 
-    // Add the current path as it represents a selectable node (category or leaf)
     paths.push(pathString);
 
-    // If value is an object, recurse into children
     if (typeof value === 'object' && Object.keys(value).length > 0) {
       paths = paths.concat(getAllTagPaths(value, newPath));
     }
@@ -26,23 +24,18 @@ function getAllTagPaths(taxonomy, currentPath = []) {
   return paths;
 }
 
-// Helper function to create CSS-friendly class names from TOP-LEVEL categories
 function getCategoryClassName(categoryName) {
   if (!categoryName) return 'category-default';
-  // Normalize common short names first
   if (categoryName === 'Theme') categoryName = 'Narrative Theme';
   if (categoryName === 'Setting') categoryName = 'Setting/Context';
-  // Split by '.' and take the first part (top-level category)
   const topLevelCategory = categoryName.split('.')[0];
-  // Convert to lowercase and replace spaces/slashes with hyphens
   return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
-// Helper function to normalize category names
 function normalizeCategoryName(categoryName) {
   if (categoryName === 'Theme') return 'Narrative Theme';
   if (categoryName === 'Setting') return 'Setting/Context';
-  return categoryName || 'Uncategorized'; // Provide a default if null/undefined
+  return categoryName || 'Uncategorized'; 
 }
 
 export function initGeneratorPanel(state) {
@@ -59,72 +52,61 @@ export function initGeneratorPanel(state) {
   const ideasContainer = document.getElementById('generated-ideas-container');
   const selectedTagsListContainer = document.getElementById('selected-tags-list');
   const ideaDetailLevelSelect = document.getElementById('idea-detail-level');
+  const loadIdeasButton = document.getElementById('load-ideas-btn');
 
   let firstTab = true;
   let allPathsCache = [];
 
+  initLoadIdeasModal(state);
+
   state.subscribe('taxonomy', (taxonomy) => {
-    // Clear existing tabs
     tabButtonsContainer.innerHTML = '';
     tabContentContainer.innerHTML = '';
-    firstTab = true; // Reset for re-renders
+    firstTab = true; 
 
-    // Regenerate the cache of all tag paths
     allPathsCache = getAllTagPaths(taxonomy);
-    // console.log("All Tag Paths:", allPathsCache); // For debugging
 
-    // Create tabs for each top-level category
     Object.entries(taxonomy).forEach(([categoryName, categoryData]) => {
-      // Create Tab Button
       const tabButton = document.createElement('button');
-      // Use the top-level category name for the class
       const categoryClassName = getCategoryClassName(categoryName);
-      tabButton.className = `tab-button ${categoryClassName}`; // Add category class
+      tabButton.className = `tab-button ${categoryClassName}`; 
       tabButton.textContent = categoryName;
-      tabButton.dataset.targetTab = categoryName.replace(/[\s/]+/g, '-').toLowerCase(); // Create a unique ID
+      tabButton.dataset.targetTab = categoryName.replace(/[\s/]+/g, '-').toLowerCase(); 
       tabButtonsContainer.appendChild(tabButton);
 
-      // Create Tab Content Panel
       const tabContent = document.createElement('div');
       tabContent.className = 'tab-content';
       tabContent.id = tabButton.dataset.targetTab;
 
-      // Render the tag tree for this category inside the tab content
-      renderTagTree(tabContent, categoryData, state, [categoryName]); // Pass the category name as the initial path
+      renderTagTree(tabContent, categoryData, state, [categoryName]); 
       tabContentContainer.appendChild(tabContent);
 
-      // Add click listener to switch tabs
       tabButton.addEventListener('click', () => {
-        // Deactivate all buttons and hide all content
         tabButtonsContainer.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         tabContentContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
-        // Activate the clicked button and show its content
         tabButton.classList.add('active');
         tabContent.classList.add('active');
       });
 
-      // Activate the first tab by default
       if (firstTab) {
         tabButton.classList.add('active');
         tabContent.classList.add('active');
         firstTab = false;
       }
     });
-    // After rendering trees, ensure checkboxes are synced with initial state
     syncTagTreeCheckboxes(state.getSelectedTags());
   });
 
-  // Function to render the list of selected tags
   function renderSelectedTagsList(selectedTagsSet) {
-    selectedTagsListContainer.innerHTML = ''; // Clear previous list
+    selectedTagsListContainer.innerHTML = ''; 
 
     if (selectedTagsSet.size === 0) {
       selectedTagsListContainer.innerHTML = '<li class="empty-state">No tags selected</li>';
       return;
     }
 
-    const sortedTags = Array.from(selectedTagsSet).sort(); // Sort alphabetically
+    const sortedTags = Array.from(selectedTagsSet).sort(); 
 
     sortedTags.forEach(tagPath => {
       const listItem = document.createElement('li');
@@ -137,7 +119,7 @@ export function initGeneratorPanel(state) {
       const deselectBtn = document.createElement('button');
       deselectBtn.className = 'selected-tag-deselect-btn';
       deselectBtn.setAttribute('aria-label', `Deselect ${tagPath}`);
-      deselectBtn.innerHTML = '&times;'; // Use HTML entity for 'x'
+      deselectBtn.innerHTML = '&times;'; 
       deselectBtn.title = `Deselect ${tagPath}`;
       deselectBtn.addEventListener('click', () => {
         state.removeSelectedTag(tagPath);
@@ -149,15 +131,12 @@ export function initGeneratorPanel(state) {
     });
   }
 
-  // Function to update the checkboxes in the tag trees based on state
   function syncTagTreeCheckboxes(selectedTagsSet) {
-    // Find all checkboxes within the tab content container
     const allCheckboxes = tabContentContainer.querySelectorAll('.tag-tree-checkbox');
 
     allCheckboxes.forEach(checkbox => {
       const checkboxPath = checkbox.dataset.tagPath;
       if (checkboxPath) {
-        // Only update if the checked status is different from the state
         const shouldBeChecked = selectedTagsSet.has(checkboxPath);
         if (checkbox.checked !== shouldBeChecked) {
             checkbox.checked = shouldBeChecked;
@@ -166,7 +145,6 @@ export function initGeneratorPanel(state) {
     });
   }
 
-  // Subscribe to selectedTags changes to update the list AND sync checkboxes
   state.subscribe('selectedTags', (selectedTagsSet) => {
     renderSelectedTagsList(selectedTagsSet);
     syncTagTreeCheckboxes(selectedTagsSet);
@@ -219,7 +197,6 @@ export function initGeneratorPanel(state) {
         ideaDetailLevel
       );
 
-      // Normalize category names before setting state
       const normalizedIdeas = ideas.map(idea => ({
         ...idea,
         category: normalizeCategoryName(idea.category)
@@ -236,7 +213,11 @@ export function initGeneratorPanel(state) {
     }
   });
 
-  // Add tooltips to control buttons
+  loadIdeasButton.addEventListener('click', () => {
+  });
+  loadIdeasButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, loadIdeasButton.title));
+  loadIdeasButton.addEventListener('mouseleave', hideTooltip);
+
   randomTagButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, 'Select a random tag from the full taxonomy'));
   randomTagButton.addEventListener('mouseleave', hideTooltip);
   randomTagButton.addEventListener('focus', (e) => showTooltip(e.currentTarget, 'Select a random tag from the full taxonomy'));
@@ -276,18 +257,17 @@ export function initGeneratorPanel(state) {
     chipsContainer.className = 'chip-container';
 
     ideas.forEach(idea => {
-      // Pass description instead of tooltip
       const chip = createChip({
         text: idea.text,
         category: idea.category,
-        description: idea.description || '', // Use description field
+        description: idea.description || '',
         onDragStart: (event) => {
-          // Chip's dragstart handler now stringifies the data itself
         },
         onDelete: () => {
           const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);
           state.setGeneratedIdeas(updatedIdeas);
-        }
+        },
+        state: state 
       });
       chipsContainer.appendChild(chip);
     });
@@ -295,7 +275,6 @@ export function initGeneratorPanel(state) {
     ideasContainer.appendChild(chipsContainer);
   });
 
-  // Initialize components with current state
   state.setGeneratedIdeas([]);
   state.setUseDraftContext(state.getUseDraftContext());
   state.setIdeaDetailLevel(state.getIdeaDetailLevel());

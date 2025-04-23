@@ -1,4 +1,4 @@
-import { showTooltip, hideTooltip } from './tooltipManager.js'; // Keep for potential future tooltips elsewhere
+import { showTooltip, hideTooltip } from './tooltipManager.js';
 
 // Helper function to normalize category names before generating class names
 function normalizeCategoryNameForClass(categoryName) {
@@ -17,7 +17,8 @@ function getCategoryClassName(categoryName) {
   return `category-${topLevelCategory.toLowerCase().replace(/[\s/]+/g, '-')}`;
 }
 
-export function createChip({ text, category, description = '', onDragStart, onDelete }) {
+// Accept state as argument to save ideas
+export function createChip({ text, category, description = '', onDragStart, onDelete, state }) {
   const chip = document.createElement('div');
   const categoryClassName = getCategoryClassName(category);
   chip.className = `chip ${categoryClassName}`;
@@ -69,7 +70,7 @@ export function createChip({ text, category, description = '', onDragStart, onDe
   }
 
 
-  // Container for action buttons (copy, delete)
+  // Container for action buttons (copy, save, delete)
   const actionsDiv = document.createElement('div');
   actionsDiv.className = 'chip-actions';
 
@@ -101,6 +102,41 @@ export function createChip({ text, category, description = '', onDragStart, onDe
       });
     });
     actionsDiv.appendChild(copyBtn);
+  }
+
+  // Save button (only appears on generated idea chips, not draft chips)
+  if (state && typeof state.saveIdea === 'function') { // Check if save function is available (means it's likely an idea chip)
+      const saveBtn = document.createElement('button');
+      saveBtn.className = 'chip-save'; // New class for styling
+      saveBtn.innerHTML = '💾'; // Save emoji/icon
+      saveBtn.setAttribute('aria-label', 'Save idea');
+      saveBtn.title = 'Save this idea';
+
+      saveBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent toggle/drag start
+          const ideaData = { text, category, description };
+          // Generate a somewhat unique key
+          const keyTextPart = text.substring(0, 25).replace(/[^a-zA-Z0-9]/g, '_'); // Sanitize and shorten text for key
+          const key = `gimg_idea_${keyTextPart}_${Date.now()}`;
+          try {
+              state.saveIdea(key, ideaData);
+              saveBtn.innerHTML = '✓'; // Indicate success
+              saveBtn.title = 'Saved!';
+              setTimeout(() => {
+                  saveBtn.innerHTML = '💾'; // Revert icon
+                  saveBtn.title = 'Save this idea';
+              }, 1500);
+          } catch (error) {
+              console.error('Failed to save idea:', error);
+              saveBtn.innerHTML = '✗'; // Indicate error
+              saveBtn.title = 'Save failed';
+              setTimeout(() => {
+                  saveBtn.innerHTML = '💾'; // Revert icon
+                  saveBtn.title = 'Save this idea';
+              }, 1500);
+          }
+      });
+      actionsDiv.appendChild(saveBtn);
   }
 
   // Delete button

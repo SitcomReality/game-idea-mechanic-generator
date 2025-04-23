@@ -3,9 +3,10 @@ export function initState() {
   // const DRAFT_STORAGE_KEY = 'gimg_designDraft'; // No longer used for default load
   const TITLE_STORAGE_KEY = 'gimg_gameTitle'; // Key for last opened game title
   const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
-  const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions'; 
-  const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel'; 
+  const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions';
+  const IDEA_DETAIL_STORAGE_KEY = 'gimg_ideaDetailLevel';
   const DRAFT_KEY_PREFIX = 'gimg_draft_'; // Prefix for saved draft keys
+  const IDEA_KEY_PREFIX = 'gimg_idea_'; // Prefix for saved individual ideas
 
   // --- Initial State Loading ---
 
@@ -111,7 +112,8 @@ export function initState() {
     useDraftContext: [],
     briefOptions: [],
     ideaDetailLevel: [],
-    savedDrafts: [] // Listener for changes in saved drafts list
+    savedDrafts: [], // Listener for changes in saved drafts list
+    savedIdeas: [] // Listener for changes in saved ideas list
   };
 
   // --- LocalStorage Interaction Helpers ---
@@ -192,6 +194,72 @@ export function initState() {
     }
   }
 
+  // Save individual idea to localStorage
+  function saveIdeaToStorage(key, ideaData) {
+    try {
+      if (!key || !key.startsWith(IDEA_KEY_PREFIX)) {
+        console.warn("Invalid key provided for saving idea:", key);
+        return;
+      }
+      localStorage.setItem(key, JSON.stringify(ideaData));
+      notifyListeners('savedIdeas'); // Notify that the list might have changed
+    } catch (error) {
+      console.error(`Error saving idea with key "${key}" to localStorage:`, error);
+    }
+  }
+
+  // Load individual idea from localStorage
+  function loadIdeaFromStorage(key) {
+    try {
+        if (!key || !key.startsWith(IDEA_KEY_PREFIX)) {
+           console.warn("Invalid key provided for loading idea:", key);
+           return null;
+        }
+        const storedIdea = localStorage.getItem(key);
+        if (storedIdea) {
+            const parsed = JSON.parse(storedIdea);
+            // Add basic validation for idea structure if needed
+            if (parsed && typeof parsed.text === 'string' && typeof parsed.category === 'string') {
+                return parsed;
+            } else {
+                console.warn(`Invalid idea data found in localStorage for key ${key}.`);
+                return null; // Indicate failure
+            }
+        }
+        return null; // No idea found for this key
+    } catch (error) {
+        console.error(`Error loading idea for key "${key}" from localStorage:`, error);
+        return null; // Indicate failure
+    }
+  }
+
+  // Get all saved idea keys
+  function getSavedIdeaKeys() {
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key.startsWith(IDEA_KEY_PREFIX)) {
+              keys.push(key);
+          }
+      }
+      // Sort by timestamp embedded in key? Or just alphabetically? Alphabetical for now.
+      return keys.sort();
+  }
+
+  // Delete individual idea from localStorage
+  function deleteIdeaFromStorage(key) {
+    try {
+        if (!key || !key.startsWith(IDEA_KEY_PREFIX)) {
+           console.warn("Invalid key provided for deleting idea:", key);
+           return;
+        }
+        localStorage.removeItem(key);
+        notifyListeners('savedIdeas'); // Notify that the list has changed
+    } catch (error) {
+        console.error(`Error deleting idea with key "${key}" from localStorage:`, error);
+    }
+  }
+
   // Notify listeners of state changes
   function notifyListeners(key) {
     if (listeners[key]) {
@@ -199,6 +267,8 @@ export function initState() {
       let valueToNotify = _state[key];
       if (key === 'savedDrafts') {
           valueToNotify = getSavedGameTitles(); // Special case: notify with the list of titles
+      } else if (key === 'savedIdeas') {
+          valueToNotify = getSavedIdeaKeys(); // Special case: notify with the list of keys
       } else if (valueToNotify instanceof Set) {
           valueToNotify = new Set(valueToNotify);
       } else if (Array.isArray(valueToNotify)) {
@@ -288,6 +358,8 @@ export function initState() {
     getIdeaDetailLevel: () => _state.ideaDetailLevel,
     getSavedGameTitles: getSavedGameTitles, // Expose helper
     isValidDraftData: isValidDraftData, // Expose validation function
+    getSavedIdeaKeys: getSavedIdeaKeys, // Expose helper
+    loadIdeaFromStorage: loadIdeaFromStorage, // Expose helper
 
     // Setters / Actions
     setTaxonomy: (taxonomy) => {
@@ -431,11 +503,29 @@ export function initState() {
       // }
     },
 
+    addToGeneratedIdeas: (idea) => {
+        _state.generatedIdeas.push(idea);
+        notifyListeners('generatedIdeas');
+    },
+
+    saveIdea: (key, ideaData) => {
+        saveIdeaToStorage(key, ideaData);
+    },
+
+    deleteIdeaByKey: (key) => {
+        deleteIdeaFromStorage(key);
+    },
+
     subscribe: (key, callback) => {
       if (listeners[key]) {
         listeners[key].push(callback);
         // Immediately invoke with current state (using the notification mechanism to ensure copy)
-        if (_state.hasOwnProperty(key)) {
+        // Special handling for savedDrafts and savedIdeas which derive from localStorage
+        if (key === 'savedDrafts') {
+            callback(getSavedGameTitles());
+        } else if (key === 'savedIdeas') {
+            callback(getSavedIdeaKeys());
+        } else if (_state.hasOwnProperty(key)) {
             let valueToNotify = _state[key];
              if (valueToNotify instanceof Set) {
                 valueToNotify = new Set(valueToNotify);

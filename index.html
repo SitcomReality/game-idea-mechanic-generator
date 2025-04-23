@@ -80,6 +80,9 @@
     <section id="generated-ideas-panel" class="panel">
       <h2>Generated Ideas</h2>
       <div id="generated-ideas-container" class="results-container"></div>
+      <div class="panel-footer">
+         <button id="load-ideas-btn" title="Load previously saved individual ideas">Load Saved Ideas</button>
+      </div>
     </section>
 
     <section id="draft-panel" class="panel">
@@ -251,6 +254,27 @@
       </div>
       <div class="modal-footer">
         <button type="button" id="load-draft-modal-cancel" class="secondary-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Loading Saved Ideas -->
+  <div id="load-ideas-modal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Load Saved Ideas</h3>
+        <button class="modal-close" id="load-ideas-modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Select a previously saved idea chip to add it to the current 'Generated Ideas' list:</p>
+        <ul id="saved-ideas-list">
+          <!-- Saved ideas will be listed here -->
+          <li class="empty-state">No saved ideas found.</li>
+        </ul>
+        <p id="local-storage-info-ideas" class="storage-info"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="load-ideas-modal-cancel" class="secondary-btn">Cancel</button>
       </div>
     </div>
   </div>
