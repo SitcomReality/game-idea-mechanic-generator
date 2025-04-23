@@ -13,7 +13,6 @@
   <link rel="stylesheet" href="styles/components/panel.css">
   <link rel="stylesheet" href="styles/components/tabs.css">
   <link rel="stylesheet" href="styles/components/imagePanel.css">
-  <!-- Add link for load draft modal CSS if created separately -->
   <script type="importmap">
     {
       "imports": {
@@ -92,12 +91,14 @@
       </div>
       <div id="draft-container" class="editable-container"></div>
       <div class="draft-controls">
-        <button id="add-chip-btn">Add Chip</button>
-        <button id="cohere-draft-btn" class="primary-btn">Cohere Draft</button>
-        <button id="save-draft-btn">Save Draft</button>
-        <button id="load-draft-btn">Load Draft</button>
-        <button id="clear-draft-btn" class="danger-btn">Clear Draft</button>
-        <!-- Removed Export/Import buttons and hidden input -->
+        <button id="add-chip-btn" title="Add a custom chip">Add Chip</button>
+        <button id="cohere-draft-btn" class="primary-btn" title="Use AI to turn chips into a coherent paragraph">Cohere Draft</button>
+        <button id="save-draft-btn" title="Save the current draft under the current title">Save</button>
+        <button id="load-draft-btn" title="Load a previously saved draft">Load</button>
+        <button id="export-draft-btn" title="Export current draft to a JSON file">Export</button>
+        <button id="import-draft-btn" title="Import a draft from a JSON file">Import</button>
+        <button id="clear-draft-btn" class="danger-btn" title="Clear the current draft content">Clear Draft</button>
+        <input type="file" id="import-draft-input" accept=".json" style="display: none;">
       </div>
     </section>
 
@@ -137,8 +138,8 @@
       <div id="brief-container" class="editable-container"></div>
       <div class="brief-controls">
         <button id="generate-brief-btn" class="primary-btn">Generate Brief</button>
-        <button id="copy-brief-btn">Copy</button>
-        <button id="download-brief-btn">Download .md</button>
+        <button id="copy-brief-btn" title="Copy brief content as Markdown">Copy</button>
+        <button id="download-brief-btn" title="Download brief content as a Markdown file">Download .md</button>
       </div>
     </section>
 
