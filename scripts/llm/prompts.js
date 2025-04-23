@@ -62,9 +62,11 @@ Analyze the following game design elements, which represent a draft of a game co
 ---
 
 **Instructions:**
-- Generate 5 creative, catchy, and relevant potential titles for this game concept.
+- Generate 5 creative, catchy, and relevant potential **game titles** (names) for this concept.
+- A title is just the name of the game (e.g., "Doom", "Stardew Valley", "Cyberpunk 2077").
+- Do NOT provide descriptions, explanations, or any other text besides the titles themselves.
 - Consider the core mechanics, theme, setting, and overall mood implied by the elements.
-- Aim for titles that are memorable and hint at the player experience.
-- Format the output as a JSON array of strings.
-- Output *only* the JSON array, and nothing else.
+- Format the output as a JSON array of strings, where each string is a potential title.
+- Output *only* the JSON array, and nothing else. Example: ["Cosmic Rift", "Pixel Pioneers", "Neon Nights"]
 `;
+
