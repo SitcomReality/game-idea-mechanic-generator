@@ -121,8 +121,7 @@ export function initDraftActions(state) {
       clearDraftBtn.addEventListener('click', () => {
           if (state.getDesignDraft().length > 0 && window.confirm('Are you sure you want to clear the entire design draft? This cannot be undone.')) {
             state.setDesignDraft([]);
-            // Optionally reset title too? Depends on desired behavior.
-            // state.setGameTitle("Untitled Game");
+            state.setGameTitle("Untitled Game"); // Reset title to default
           }
       });
       clearDraftBtn.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, clearDraftBtn.title));
