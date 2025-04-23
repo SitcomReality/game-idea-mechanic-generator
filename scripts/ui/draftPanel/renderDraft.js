@@ -52,7 +52,7 @@ export function renderDesignDraft(draftContainer, draft, state, addChipBtn) {
   // Enable Add Chip button when in chip view
   if (addChipBtn) {
       addChipBtn.disabled = false;
-      addChipBtn.title = "";
+      addChipBtn.title = "Add a custom chip"; // Reset title
   }
   // Remove input listener if it was added previously for HTML view
   draftContainer.removeEventListener('input', handleHtmlInput);
@@ -114,7 +114,8 @@ export function renderDesignDraft(draftContainer, draft, state, addChipBtn) {
                   state.removeFromDesignDraft(originalIndex);
               },
               // Dragging chips *within* the draft isn't needed/supported here
-              onDragStart: null // Keep null for now
+              onDragStart: null, // Keep null for now
+              state: state // Pass state to enable save button
           });
           chipsContainerDiv.appendChild(chip);
       });
