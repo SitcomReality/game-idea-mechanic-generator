@@ -60,7 +60,8 @@ export function initDraftActions(state) {
           const confirmationMessage = "Are you sure you want to cohere the draft?\n\n" +
               "This action will replace your current idea chips with a single block of generated text. " +
               "This process is irreversible.\n\n" +
-              "Consider saving your current draft first if you want to keep the editable chips.";
+              "Consider saving your current draft first if you want to keep the editable chips.\n\n" +
+              "Press Okay to continue.";
 
           if (!window.confirm(confirmationMessage)) {
               return; // User cancelled
