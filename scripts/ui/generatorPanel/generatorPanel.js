@@ -61,54 +61,65 @@ export function initGeneratorPanel(state) {
   initLoadIdeasModal(state);
   initAddIdeaModal(state);
 
+  // --- Subscribe to Taxonomy Changes ---
   state.subscribe('taxonomy', (taxonomy) => {
+    // Clear existing tabs and content
     tabButtonsContainer.innerHTML = '';
     tabContentContainer.innerHTML = '';
-    firstTab = true; 
+    firstTab = true; // Reset for tab activation logic
 
+    // Cache all tag paths for random selection
     allPathsCache = getAllTagPaths(taxonomy);
 
+    // Create tabs and content for each top-level category
     Object.entries(taxonomy).forEach(([categoryName, categoryData]) => {
       const tabButton = document.createElement('button');
-      const categoryClassName = getCategoryClassName(categoryName);
-      tabButton.className = `tab-button ${categoryClassName}`; 
+      const categoryClassName = getCategoryClassName(categoryName); // Helper function for styling
+      tabButton.className = `tab-button ${categoryClassName}`; // Apply category-specific class
       tabButton.textContent = categoryName;
-      tabButton.dataset.targetTab = categoryName.replace(/[\s/]+/g, '-').toLowerCase(); 
+      tabButton.dataset.targetTab = categoryName.replace(/[\s/]+/g, '-').toLowerCase(); // Create a CSS-friendly ID
       tabButtonsContainer.appendChild(tabButton);
 
       const tabContent = document.createElement('div');
       tabContent.className = 'tab-content';
       tabContent.id = tabButton.dataset.targetTab;
 
-      renderTagTree(tabContent, categoryData, state, [categoryName]); 
+      // Render the hierarchical tag tree for this category
+      renderTagTree(tabContent, categoryData, state, [categoryName]); // Pass state and base path
       tabContentContainer.appendChild(tabContent);
 
+      // Add click listener for tab switching
       tabButton.addEventListener('click', () => {
+        // Deactivate all tabs and content
         tabButtonsContainer.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
         tabContentContainer.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
 
+        // Activate the clicked tab and its content
         tabButton.classList.add('active');
         tabContent.classList.add('active');
       });
 
+      // Activate the first tab by default
       if (firstTab) {
         tabButton.classList.add('active');
         tabContent.classList.add('active');
         firstTab = false;
       }
     });
+    // Ensure checkboxes reflect the current state after taxonomy is rendered/re-rendered
     syncTagTreeCheckboxes(state.getSelectedTags());
   });
 
+  // --- Functions for Selected Tags List ---
   function renderSelectedTagsList(selectedTagsSet) {
-    selectedTagsListContainer.innerHTML = ''; 
+    selectedTagsListContainer.innerHTML = ''; // Clear current list
 
     if (selectedTagsSet.size === 0) {
       selectedTagsListContainer.innerHTML = '<li class="empty-state">No tags selected</li>';
       return;
     }
 
-    const sortedTags = Array.from(selectedTagsSet).sort(); 
+    const sortedTags = Array.from(selectedTagsSet).sort(); // Display alphabetically
 
     sortedTags.forEach(tagPath => {
       const listItem = document.createElement('li');
@@ -121,10 +132,10 @@ export function initGeneratorPanel(state) {
       const deselectBtn = document.createElement('button');
       deselectBtn.className = 'selected-tag-deselect-btn';
       deselectBtn.setAttribute('aria-label', `Deselect ${tagPath}`);
-      deselectBtn.innerHTML = '&times;'; 
+      deselectBtn.innerHTML = '&times;'; // Simple 'x' icon
       deselectBtn.title = `Deselect ${tagPath}`;
       deselectBtn.addEventListener('click', () => {
-        state.removeSelectedTag(tagPath);
+        state.removeSelectedTag(tagPath); // Update state on click
       });
 
       listItem.appendChild(pathSpan);
@@ -134,12 +145,14 @@ export function initGeneratorPanel(state) {
   }
 
   function syncTagTreeCheckboxes(selectedTagsSet) {
+    // Get all checkboxes within the tag trees
     const allCheckboxes = tabContentContainer.querySelectorAll('.tag-tree-checkbox');
 
     allCheckboxes.forEach(checkbox => {
-      const checkboxPath = checkbox.dataset.tagPath;
+      const checkboxPath = checkbox.dataset.tagPath; // Get the path associated with the checkbox
       if (checkboxPath) {
         const shouldBeChecked = selectedTagsSet.has(checkboxPath);
+        // Only update the checkbox if its state doesn't match the global state
         if (checkbox.checked !== shouldBeChecked) {
             checkbox.checked = shouldBeChecked;
         }
@@ -147,40 +160,47 @@ export function initGeneratorPanel(state) {
     });
   }
 
+  // Subscribe to selectedTags changes to update the list and checkboxes
   state.subscribe('selectedTags', (selectedTagsSet) => {
     renderSelectedTagsList(selectedTagsSet);
     syncTagTreeCheckboxes(selectedTagsSet);
   });
 
+  // --- Event Listeners for Generator Options ---
+
   termQuantityInput.addEventListener('input', () => {
     const value = termQuantityInput.value;
-    termQuantityDisplay.textContent = value;
-    state.setTermQuantity(parseInt(value));
+    termQuantityDisplay.textContent = value; // Update visual display
+    state.setTermQuantity(parseInt(value)); // Update state
   });
 
   customTextInput.addEventListener('input', () => {
-    state.setCustomText(customTextInput.value);
+    state.setCustomText(customTextInput.value); // Update state on input
   });
 
   useDraftContextCheckbox.addEventListener('change', () => {
-    state.setUseDraftContext(useDraftContextCheckbox.checked);
+    state.setUseDraftContext(useDraftContextCheckbox.checked); // Update state on change
   });
+  // Sync checkbox state if loaded from storage
   state.subscribe('useDraftContext', (useContext) => {
     useDraftContextCheckbox.checked = useContext;
   });
 
   ideaDetailLevelSelect.addEventListener('change', () => {
-    state.setIdeaDetailLevel(ideaDetailLevelSelect.value);
+    state.setIdeaDetailLevel(ideaDetailLevelSelect.value); // Update state on change
   });
+  // Sync select state if loaded from storage
   state.subscribe('ideaDetailLevel', (level) => {
     ideaDetailLevelSelect.value = level;
   });
 
+  // --- Event Listener for Generate Button ---
   generateButton.addEventListener('click', async () => {
     generateButton.disabled = true;
     generateButton.textContent = 'Generating...';
 
     try {
+      // Get current settings from state
       const quantity = state.getTermQuantity();
       const customText = state.getCustomText();
       const selectedTags = state.getSelectedTags();
@@ -191,6 +211,7 @@ export function initGeneratorPanel(state) {
       let ideas = [];
       const draftContextForLLM = useDraftContext ? designDraft : null;
 
+      // Call the LLM generator function
       ideas = await generateIdeasFromLLM(
         selectedTags,
         quantity,
@@ -199,35 +220,41 @@ export function initGeneratorPanel(state) {
         ideaDetailLevel
       );
 
-      // --- Add validation here ---
+      // --- Validate and Normalize Response ---
       if (!Array.isArray(ideas)) {
           console.error("LLM did not return an array for generated ideas:", ideas);
           throw new Error("Received invalid data format from idea generator.");
       }
-      // Ensure basic structure before normalization and saving
+      // Ensure basic structure before normalization
       ideas = ideas.filter(idea => idea && typeof idea === 'object' && typeof idea.text === 'string');
-
+      // Normalize category names (e.g., 'Theme' -> 'Narrative Theme')
       const normalizedIdeas = ideas.map(idea => ({
         ...idea,
-        category: normalizeCategoryName(idea.category)
+        category: normalizeCategoryName(idea.category) // Use helper
       }));
 
+      // Update the generated ideas state (this triggers saving and re-rendering)
       state.setGeneratedIdeas(normalizedIdeas);
 
     } catch (error) {
       console.error('Error generating ideas:', error);
+      // Display error message in the ideas container
       ideasContainer.innerHTML = `<div class="error-message">Error generating ideas: ${error.message}</div>`;
     } finally {
+      // Re-enable the button
       generateButton.disabled = false;
       generateButton.textContent = 'Generate Ideas';
     }
   });
 
+  // --- Load Saved Ideas Button ---
   loadIdeasButton.addEventListener('click', () => {
+    // Logic is handled within initLoadIdeasModal
   });
   loadIdeasButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, loadIdeasButton.title));
   loadIdeasButton.addEventListener('mouseleave', hideTooltip);
 
+  // --- Tooltips for Selected Tags Controls ---
   randomTagButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, 'Select a random tag from the full taxonomy'));
   randomTagButton.addEventListener('mouseleave', hideTooltip);
   randomTagButton.addEventListener('focus', (e) => showTooltip(e.currentTarget, 'Select a random tag from the full taxonomy'));
@@ -238,6 +265,7 @@ export function initGeneratorPanel(state) {
   clearTagsButton.addEventListener('focus', (e) => showTooltip(e.currentTarget, 'Clear all selected tags'));
   clearTagsButton.addEventListener('blur', hideTooltip);
 
+  // --- Action Listeners for Selected Tags Controls ---
   randomTagButton.addEventListener('click', () => {
     if (allPathsCache.length === 0) {
       console.warn('No tag paths available to select from.');
@@ -245,39 +273,43 @@ export function initGeneratorPanel(state) {
     }
     const randomIndex = Math.floor(Math.random() * allPathsCache.length);
     const randomTagPath = allPathsCache[randomIndex];
-    state.addSelectedTag(randomTagPath);
+    state.addSelectedTag(randomTagPath); // Update state
   });
 
   clearTagsButton.addEventListener('click', () => {
     if (state.getSelectedTags().size > 0) {
       if (window.confirm('Are you sure you want to clear all selected tags?')) {
-        state.setSelectedTags(new Set());
+        state.setSelectedTags(new Set()); // Update state with an empty set
       }
     }
   });
 
+  // --- Subscribe to Generated Ideas State for Rendering ---
   state.subscribe('generatedIdeas', (ideas) => {
-    ideasContainer.innerHTML = '';
+    ideasContainer.innerHTML = ''; // Clear existing content
 
     if (!ideas || ideas.length === 0) {
       ideasContainer.innerHTML = '<p class="empty-state">Generate ideas to see results here</p>';
       return;
     }
     const chipsContainer = document.createElement('div');
-    chipsContainer.className = 'chip-container';
+    chipsContainer.className = 'chip-container'; // Use class for potential styling
 
-    ideas.forEach(idea => {
+    // Create and append a chip for each idea
+    ideas.forEach((idea, index) => { // Get index for deletion
       const chip = createChip({
         text: idea.text,
-        category: idea.category,
+        category: idea.category, // Already normalized when set
         description: idea.description || '',
         onDragStart: (event) => {
+          // Drag logic is handled by the Draft Panel's drop handler
         },
         onDelete: () => {
-          const updatedIdeas = state.getGeneratedIdeas().filter(i => i !== idea);
-          state.setGeneratedIdeas(updatedIdeas);
+          // Create a new array excluding the deleted item
+          const updatedIdeas = state.getGeneratedIdeas().filter((_, i) => i !== index);
+          state.setGeneratedIdeas(updatedIdeas); // Update state (triggers save & re-render)
         },
-        state: state 
+        state: state // Pass state for the "Save Idea" button within the chip
       });
       chipsContainer.appendChild(chip);
     });
@@ -285,9 +317,12 @@ export function initGeneratorPanel(state) {
     ideasContainer.appendChild(chipsContainer);
   });
 
-  state.setGeneratedIdeas([]);
+  // --- Initial State Sync ---
+  // Ensure UI elements reflect the initial state loaded from storage or defaults
+  // state.setGeneratedIdeas([]); // Removed this line - it was clearing loaded ideas
   state.setUseDraftContext(state.getUseDraftContext());
   state.setIdeaDetailLevel(state.getIdeaDetailLevel());
   renderSelectedTagsList(state.getSelectedTags());
   syncTagTreeCheckboxes(state.getSelectedTags());
+  // The initial render of generated ideas happens automatically via the subscribe call
 }
