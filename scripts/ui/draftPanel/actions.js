@@ -36,7 +36,6 @@ function getLocalStorageUsage() {
     };
 }
 
-
 export function initDraftActions(state) {
     const cohereDraftBtn = document.getElementById('cohere-draft-btn');
     const clearDraftBtn = document.getElementById('clear-draft-btn');
@@ -137,11 +136,32 @@ export function initDraftActions(state) {
             // Optionally focus the title input: document.getElementById('draft-title').focus();
             return;
         }
+
+        // Check if a draft with this title already exists
+        const savedTitles = state.getSavedGameTitles();
+        const draftExists = savedTitles.includes(currentTitle);
+
+        // Ask for confirmation if the draft already exists
+        if (draftExists) {
+          if (!window.confirm(`A draft with the title "${currentTitle}" already exists. Do you want to overwrite it?`)) {
+            return; // User cancelled the overwrite
+          }
+        }
+
+        // Proceed with saving (or overwriting)
         try {
-            state.saveCurrentDraftUnderTitle(currentTitle);
-            saveDraftBtn.textContent = 'Saved!';
-            setTimeout(() => { saveDraftBtn.textContent = 'Save'; }, 1500);
-        } catch (error) {
+            // Use the state action which handles the actual saving logic (including autosave side effect)
+            if (state.saveCurrentDraftUnderTitle(currentTitle)) {
+                saveDraftBtn.textContent = 'Saved!';
+                setTimeout(() => { saveDraftBtn.textContent = 'Save'; }, 1500);
+            } else {
+                 // This branch might not be reachable if saveCurrentDraftUnderTitle always throws on error
+                 // but kept for robustness
+                 alert(`Failed to save draft "${currentTitle}". See console for details.`);
+                 saveDraftBtn.textContent = 'Error!';
+                 setTimeout(() => { saveDraftBtn.textContent = 'Save'; }, 1500);
+            }
+        } catch (error) { // Catch errors thrown by saveCurrentDraftUnderTitle (e.g., QuotaExceeded)
              console.error(`Error saving draft "${currentTitle}":`, error);
              alert(`Failed to save draft: ${error.message}`);
              saveDraftBtn.textContent = 'Error!';
@@ -236,7 +256,6 @@ export function initDraftActions(state) {
             }
         });
     } else { console.warn("Load Draft Modal not found"); }
-
 
     // --- Export ---
     if (exportDraftBtn) {
