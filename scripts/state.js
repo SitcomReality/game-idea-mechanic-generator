@@ -21,8 +21,8 @@ export function initState() {
   const initialDraft = storage.loadDraft(initialTitle, isValidDraftData) || [];
   setState('designDraft', initialDraft);
 
-  // Load generated ideas associated with the initial title
-  const initialIdeas = storage.loadGeneratedIdeas(initialTitle) || [];
+  // Load the *single* persistent generated ideas list, independent of title
+  const initialIdeas = storage.loadGeneratedIdeas() || [];
   setState('generatedIdeas', initialIdeas);
 
   // Load settings
@@ -56,8 +56,8 @@ export function initState() {
     getUseDraftContext: actions.getUseDraftContext,
     getBriefOptions: actions.getBriefOptions,
     getIdeaDetailLevel: actions.getIdeaDetailLevel,
-    getSavedGameTitles: actions.getSavedGameTitles, // Expose helper
-    getSavedIdeaKeys: actions.getSavedIdeaKeys, // Expose helper
+    getSavedGameTitles: actions.getSavedGameTitles, 
+    getSavedIdeaKeys: actions.getSavedIdeaKeys, 
 
     // Setters/Actions from stateGettersSetters.js
     setTaxonomy: actions.setTaxonomy,
@@ -83,8 +83,8 @@ export function initState() {
     deleteIdeaByKey: actions.deleteIdeaByKey,
 
     // Utilities / Helpers exposed
-    isValidDraftData: isValidDraftData, // Expose validation function
-    loadIdeaFromStorage: actions.loadIdeaFromStorage, // Exposed for Load Ideas Modal
-    getLocalStorageUsage: storage.getLocalStorageUsage, // Expose usage calculation
+    isValidDraftData: isValidDraftData, 
+    loadIdeaFromStorage: actions.loadIdeaFromStorage, 
+    getLocalStorageUsage: storage.getLocalStorageUsage, 
   };
 }
