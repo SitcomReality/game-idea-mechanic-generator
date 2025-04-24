@@ -11,14 +11,27 @@ export function initBriefPanel(state) {
   const briefTypeSelect = document.getElementById('brief-type-select');
   const briefSectionTogglesContainer = document.getElementById('brief-section-toggles');
   const briefTechContextSelect = document.getElementById('brief-tech-context-select');
+  const optionalSectionsGroup = document.querySelector('.brief-sections-group'); // Find the container for optional sections
 
   // Make brief container editable
   briefContainer.contentEditable = true;
 
+  // Function to show/hide optional sections based on brief type
+  function updateOptionalSectionsVisibility(briefType) {
+    // Only show optional sections for 'full' brief type
+    if (briefType === 'full') {
+      optionalSectionsGroup.style.display = 'block';
+    } else {
+      optionalSectionsGroup.style.display = 'none';
+    }
+  }
+
   // --- Event Listeners for Options ---
 
   briefTypeSelect.addEventListener('change', (e) => {
-    state.setBriefOption('briefType', e.target.value);
+    const selectedType = e.target.value;
+    state.setBriefOption('briefType', selectedType);
+    updateOptionalSectionsVisibility(selectedType); // Update visibility on change
   });
 
   briefTechContextSelect.addEventListener('change', (e) => {
@@ -47,6 +60,9 @@ export function initBriefPanel(state) {
       const stateKey = `include${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}`;
       checkbox.checked = options[stateKey];
     });
+
+    // Update visibility based on loaded state
+    updateOptionalSectionsVisibility(options.briefType);
   });
 
   // Listen for content changes in the brief container
@@ -195,6 +211,7 @@ export function initBriefPanel(state) {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'error-message';
       errorDiv.textContent = `Error generating brief: ${error.message}`;
+      briefContainer.innerHTML = `<p class="empty-state">Error generating. Check console.</p>`; // Clear previous brief on error
       briefContainer.appendChild(errorDiv);
       state.setDesignBrief(''); // Clear state on error
     } finally {
@@ -268,6 +285,4 @@ export function initBriefPanel(state) {
   } else {
     briefContainer.innerHTML = '<p class="empty-state">Generate a design brief from your draft</p>';
   }
-
-  // Initialize options UI from state - The subscribe call already handles this.
 }
