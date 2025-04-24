@@ -21,6 +21,10 @@ export function initState() {
   const initialDraft = storage.loadDraft(initialTitle, isValidDraftData) || [];
   setState('designDraft', initialDraft);
 
+  // Load generated ideas associated with the initial title
+  const initialIdeas = storage.loadGeneratedIdeas(initialTitle) || [];
+  setState('generatedIdeas', initialIdeas);
+
   // Load settings
   setState('useDraftContext', storage.loadUseDraftContextSetting());
   setState('briefOptions', storage.loadBriefOptionsSetting());
@@ -31,7 +35,6 @@ export function initState() {
   setState('selectedTags', new Set());
   setState('termQuantity', 3);
   setState('customText', '');
-  setState('generatedIdeas', []);
   setState('designBrief', '');
 
   // --- Public API ---

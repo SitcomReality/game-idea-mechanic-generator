@@ -58,16 +58,24 @@ export function setCustomText(text) {
 export function setGeneratedIdeas(ideas) {
     setState('generatedIdeas', ideas);
     notifyListeners('generatedIdeas', getState('generatedIdeas'));
+    // Persist generated ideas whenever they are set
+    const title = getState('gameTitle');
+    storage.saveGeneratedIdeas(title, ideas);
 }
 
 export function addToGeneratedIdeas(idea) {
     const currentIdeas = getState('generatedIdeas');
     currentIdeas.push(idea);
-    setState('generatedIdeas', currentIdeas);
-    notifyListeners('generatedIdeas', getState('generatedIdeas'));
+    setState('generatedIdeas', currentIdeas); // Update state with the mutated array
+    notifyListeners('generatedIdeas', getState('generatedIdeas')); // Notify with a copy
+    // Persist generated ideas whenever one is added
+    const title = getState('gameTitle');
+    storage.saveGeneratedIdeas(title, currentIdeas);
 }
 
 export function setDesignDraft(draft) {
+    // Note: Persisting draft happens only on explicit save action (saveCurrentDraftUnderTitle)
+    // or when loading a different draft.
     if (isValidDraftData(draft)) {
         setState('designDraft', draft);
         notifyListeners('designDraft', getState('designDraft'));
@@ -107,7 +115,17 @@ export function setGameTitle(title) {
     const cleanTitle = title ? title.trim() : '';
     const finalTitle = cleanTitle || "Untitled Game"; // Ensure not empty
     setState('gameTitle', finalTitle);
+    // When the title changes, we should also try to load the generated ideas for the new title
     storage.saveLastOpenedTitle(finalTitle); // Persist last opened title
+
+    // Load associated generated ideas
+    const associatedIdeas = storage.loadGeneratedIdeas(finalTitle);
+    if (associatedIdeas) {
+        setState('generatedIdeas', associatedIdeas); // Use setState directly to avoid re-saving
+    } else {
+        setState('generatedIdeas', []); // Clear ideas if none saved for this title
+    }
+    notifyListeners('generatedIdeas', getState('generatedIdeas')); // Notify about potential idea list change
     notifyListeners('gameTitle', finalTitle);
 }
 
@@ -162,6 +180,12 @@ export function loadDraftByTitle(title) {
         setState('designDraft', draft);
         notifyListeners('designDraft', getState('designDraft'));
         // Also update the current game title state and persist as last opened
+        // Load associated generated ideas as well
+        const associatedIdeas = storage.loadGeneratedIdeas(title);
+        setState('generatedIdeas', associatedIdeas || []); // Load ideas or set empty array
+        notifyListeners('generatedIdeas', getState('generatedIdeas')); // Notify idea list change
+
+        // Setting the title handles its state update, persistence, and notification
         setGameTitle(title); // Handles state update, persistence, and notification
     } else {
         console.error(`Failed to load draft for title "${title}"`);
@@ -172,10 +196,12 @@ export function loadDraftByTitle(title) {
 
 export function deleteDraftByTitle(title) {
     if (storage.deleteDraft(title)) {
+        storage.deleteGeneratedIdeas(title); // Also delete associated generated ideas
         notifyListeners('savedDrafts', storage.getSavedDraftTitles()); // Notify list change
         // If the deleted draft was the currently loaded one, maybe load default?
         // Example: Load "Untitled Game" or clear the draft. Let's clear it.
         if (getState('gameTitle') === title) {
+             setState('generatedIdeas', []); // Clear ideas too
              setState('designDraft', []);
              notifyListeners('designDraft', getState('designDraft'));
              // Optionally set title back to default, but maybe confusing

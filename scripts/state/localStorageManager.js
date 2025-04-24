@@ -2,6 +2,7 @@
 
 const DRAFT_KEY_PREFIX = 'gimg_draft_';
 const IDEA_KEY_PREFIX = 'gimg_idea_';
+const GENERATED_IDEAS_KEY_PREFIX = 'gimg_ideas_'; // New prefix for generated ideas lists
 const TITLE_STORAGE_KEY = 'gimg_gameTitle';
 const DRAFT_CONTEXT_STORAGE_KEY = 'gimg_useDraftContext';
 const BRIEF_OPTIONS_STORAGE_KEY = 'gimg_briefOptions';
@@ -74,6 +75,46 @@ export function getSavedDraftTitles() {
         console.error("Error reading saved draft titles from localStorage:", error);
     }
     return titles.sort(); // Return sorted list
+}
+
+// --- Generated Ideas List (per draft title) ---
+
+export function saveGeneratedIdeas(title, ideas) {
+    try {
+        const ideasKey = GENERATED_IDEAS_KEY_PREFIX + title;
+        if (!title || title.trim() === "") {
+            console.warn("Cannot save generated ideas with empty title.");
+            return false;
+        }
+        // Basic validation before saving
+        if (!Array.isArray(ideas) || !ideas.every(idea => typeof idea === 'object' && idea !== null && typeof idea.text === 'string')) {
+            console.warn(`Invalid generated ideas data structure for title "${title}". Save cancelled.`);
+            return false;
+        }
+        localStorage.setItem(ideasKey, JSON.stringify(ideas));
+        return true;
+    } catch (error) {
+        console.error(`Error saving generated ideas for title "${title}" to localStorage:`, error);
+        if (error.name === 'QuotaExceededError') {
+            alert('Could not save generated ideas: Local storage quota exceeded.');
+        }
+        return false;
+    }
+}
+
+export function loadGeneratedIdeas(title) {
+    try {
+        const ideasKey = GENERATED_IDEAS_KEY_PREFIX + title;
+        const storedIdeas = localStorage.getItem(ideasKey);
+        return storedIdeas ? JSON.parse(storedIdeas) : null; // Return parsed array or null
+    } catch (error) {
+        console.error(`Error loading generated ideas for title "${title}" from localStorage:`, error);
+        return null;
+    }
+}
+
+export function deleteGeneratedIdeas(title) {
+    localStorage.removeItem(GENERATED_IDEAS_KEY_PREFIX + title);
 }
 
 // --- Last Opened Title ---
