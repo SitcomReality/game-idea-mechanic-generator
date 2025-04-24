@@ -3,6 +3,7 @@ import { createChip } from '../chip.js';
 import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
 import { showTooltip, hideTooltip } from '../tooltipManager.js';
 import { initLoadIdeasModal } from './loadIdeasModal.js';
+import { initAddIdeaModal } from './addIdeaModal.js';
 
 function getAllTagPaths(taxonomy, currentPath = []) {
   let paths = [];
@@ -58,6 +59,7 @@ export function initGeneratorPanel(state) {
   let allPathsCache = [];
 
   initLoadIdeasModal(state);
+  initAddIdeaModal(state);
 
   state.subscribe('taxonomy', (taxonomy) => {
     tabButtonsContainer.innerHTML = '';

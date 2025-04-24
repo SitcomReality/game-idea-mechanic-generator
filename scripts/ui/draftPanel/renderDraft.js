@@ -1,4 +1,3 @@
-// New file: scripts/ui/draftPanel/renderDraft.js
 import { createChip } from '../chip.js';
 
 // Helper function to get top-level category name for grouping
@@ -25,7 +24,7 @@ function normalizeCategoryName(categoryName) {
 }
 
 
-export function renderDesignDraft(draftContainer, draft, state, addChipBtn) {
+export function renderDesignDraft(draftContainer, draft, state) { 
   // Clear only the *chip container*, leave the title section untouched
   draftContainer.innerHTML = '';
 
@@ -35,11 +34,6 @@ export function renderDesignDraft(draftContainer, draft, state, addChipBtn) {
       draftContainer.innerHTML = draft[0].text;
       draftContainer.classList.add('html-view');
       draftContainer.classList.remove('categorized-view');
-      // Disable Add Chip button when in HTML view
-      if (addChipBtn) {
-          addChipBtn.disabled = true;
-          addChipBtn.title = "Cannot add chips while in cohered view. Clear draft to add new chips.";
-      }
       // Handle input only when contentEditable is true (i.e., for HTML block)
       draftContainer.addEventListener('input', handleHtmlInput);
       return;
@@ -49,11 +43,6 @@ export function renderDesignDraft(draftContainer, draft, state, addChipBtn) {
   draftContainer.contentEditable = false; // Disable editing for categorized view
   draftContainer.classList.remove('html-view');
   draftContainer.classList.add('categorized-view');
-  // Enable Add Chip button when in chip view
-  if (addChipBtn) {
-      addChipBtn.disabled = false;
-      addChipBtn.title = "Add a custom chip"; // Reset title
-  }
   // Remove input listener if it was added previously for HTML view
   draftContainer.removeEventListener('input', handleHtmlInput);
 
