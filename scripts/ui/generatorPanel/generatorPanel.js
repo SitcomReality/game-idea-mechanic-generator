@@ -54,6 +54,7 @@ export function initGeneratorPanel(state) {
   const selectedTagsListContainer = document.getElementById('selected-tags-list');
   const ideaDetailLevelSelect = document.getElementById('idea-detail-level');
   const loadIdeasButton = document.getElementById('load-ideas-btn');
+  const clearIdeasButton = document.getElementById('clear-ideas-btn');
 
   let firstTab = true;
   let allPathsCache = [];
@@ -291,6 +292,21 @@ export function initGeneratorPanel(state) {
       }
     }
   });
+
+  // --- Clear Generated Ideas Button ---
+  clearIdeasButton.addEventListener('click', () => {
+    const currentIdeas = state.getGeneratedIdeas();
+    if (currentIdeas.length > 0) {
+      if (window.confirm('Are you sure you want to clear all generated ideas? This cannot be undone.')) {
+        state.setGeneratedIdeas([]); // Clear the state, triggering autosave and re-render
+      }
+    } else {
+      showTooltip(clearIdeasButton, 'Idea list is already empty'); // Show a temporary tooltip
+      setTimeout(hideTooltip, 1500);
+    }
+  });
+  clearIdeasButton.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, clearIdeasButton.title));
+  clearIdeasButton.addEventListener('mouseleave', hideTooltip);
 
   // --- Subscribe to Generated Ideas State for Rendering ---
   state.subscribe('generatedIdeas', (ideas) => {
