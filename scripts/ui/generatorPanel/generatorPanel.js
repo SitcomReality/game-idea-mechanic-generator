@@ -232,9 +232,13 @@ export function initGeneratorPanel(state) {
         ...idea,
         category: normalizeCategoryName(idea.category) // Use helper
       }));
+      normalizedNewIdeas.forEach(idea => idea.isNew = true); // Mark new ideas
 
       // --- Combine new ideas with existing ones (prepend) ---
       const currentIdeas = state.getGeneratedIdeas();
+      currentIdeas.forEach(idea => delete idea.isNew); // Remove 'new' status from old ideas
+
+      // Combine with new ideas at the front
       const combinedIdeas = [...normalizedNewIdeas, ...currentIdeas];
 
       // Update the generated ideas state (this triggers saving and re-rendering)
@@ -316,12 +320,12 @@ export function initGeneratorPanel(state) {
           event.dataTransfer.setData('application/json', JSON.stringify(dataToTransfer));
         },
         onDelete: () => {
-          // Create a new array excluding the deleted item
+          // Ensure 'isNew' flags are removed from the array before filtering/updating
           const updatedIdeas = state.getGeneratedIdeas().filter((_, i) => i !== index);
           state.setGeneratedIdeas(updatedIdeas); // Update state (triggers save & re-render)
         },
-        state: state // Pass state for the "Save Idea" button within the chip
-      });
+        state: state, // Pass state for the "Save Idea" button within the chip
+      }, idea.isNew); // Pass the isNew flag
       chipsContainer.appendChild(chip);
     });
 

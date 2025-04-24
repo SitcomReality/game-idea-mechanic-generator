@@ -55,8 +55,9 @@ export function setCustomText(text) {
 
 export function setGeneratedIdeas(ideas) {
     setState('generatedIdeas', ideas);
-    // Persist generated ideas whenever they are set, using the global key
-    storage.saveGeneratedIdeas(ideas);
+    // Persist generated ideas whenever they are set, using the global key.
+    // The save function handles stripping the 'isNew' flag.
+    storage.saveGeneratedIdeas(getState('generatedIdeas'));
     notifyListeners('generatedIdeas', getState('generatedIdeas'));
 }
 
@@ -64,8 +65,9 @@ export function addToGeneratedIdeas(idea) {
     const currentIdeas = getState('generatedIdeas');
     currentIdeas.push(idea);
     setState('generatedIdeas', currentIdeas); // Update state with the mutated array
-    // Persist generated ideas whenever one is added, using the global key
-    storage.saveGeneratedIdeas(currentIdeas);
+    // Persist generated ideas whenever one is added, using the global key.
+    // The save function handles stripping the 'isNew' flag.
+    storage.saveGeneratedIdeas(getState('generatedIdeas'));
     notifyListeners('generatedIdeas', getState('generatedIdeas')); // Notify with a copy
 }
 

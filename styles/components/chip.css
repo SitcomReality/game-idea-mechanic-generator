@@ -10,6 +10,7 @@
   transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   cursor: grab;
   position: relative;
+  overflow: hidden; /* Contain the absolute positioned badge */
 }
 
 .chip:hover {
@@ -36,7 +37,7 @@
 
 .chip-content {
   flex-grow: 1;
-  padding-right: 5px;
+  /* Removed padding-right: 5px; - manage spacing with gap in header */
 }
 
 .chip-category {
@@ -125,6 +126,7 @@
 }
 
 .chip-delete, .chip-copy, .chip-save {
+  position: relative; /* Ensure buttons are above the badge */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -187,4 +189,22 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+}
+
+.chip--new {
+  border-left: 3px solid var(--accent-alt); /* Highlight new chips */
+  background-color: color-mix(in srgb, var(--bg-tertiary), var(--accent-alt) 5%); /* Subtle background tint */
+}
+
+.chip-new-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: var(--accent-alt);
+  color: var(--bg-primary);
+  font-size: 0.6rem;
+  font-weight: bold;
+  padding: 1px 4px;
+  border-radius: var(--border-radius-s);
+  line-height: 1;
 }

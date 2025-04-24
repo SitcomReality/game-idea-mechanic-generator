@@ -1,5 +1,3 @@
-// New file: scripts/state/localStorageManager.js
-
 const DRAFT_KEY_PREFIX = 'gimg_draft_';
 const IDEA_KEY_PREFIX = 'gimg_idea_';
 // const GENERATED_IDEAS_KEY_PREFIX = 'gimg_ideas_'; // Removed: Ideas are no longer tied to title
@@ -83,12 +81,17 @@ export function getSavedDraftTitles() {
 export function saveGeneratedIdeas(ideas) { 
     try {
         const ideasKey = CURRENT_GENERATED_IDEAS_KEY; 
+        // Strip transient 'isNew' flag before saving
+        const ideasToSave = ideas.map(idea => {
+            const { isNew, ...rest } = idea; // Destructure to remove isNew
+            return rest;
+        });
         // Basic validation before saving
-        if (!Array.isArray(ideas) || !ideas.every(idea => typeof idea === 'object' && idea !== null && typeof idea.text === 'string')) {
+        if (!Array.isArray(ideasToSave) || !ideasToSave.every(idea => typeof idea === 'object' && idea !== null && typeof idea.text === 'string')) {
             console.warn(`Invalid generated ideas data structure. Save cancelled.`);
             return false;
         }
-        localStorage.setItem(ideasKey, JSON.stringify(ideas));
+        localStorage.setItem(ideasKey, JSON.stringify(ideasToSave));
         return true;
     } catch (error) {
         console.error(`Error saving current generated ideas to localStorage:`, error);

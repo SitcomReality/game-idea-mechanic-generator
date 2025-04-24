@@ -18,10 +18,11 @@ function getCategoryClassName(categoryName) {
 }
 
 // Accept state as argument to save ideas
-export function createChip({ text, category, description = '', onDragStart, onDelete, state }) {
+// Accept isNew flag
+export function createChip({ text, category, description = '', onDragStart, onDelete, state, isNew = false }) {
   const chip = document.createElement('div');
   const categoryClassName = getCategoryClassName(category);
-  chip.className = `chip ${categoryClassName}`;
+  chip.className = `chip ${categoryClassName}${isNew ? ' chip--new' : ''}`; // Add new class if needed
   chip.draggable = true;
 
   // Main visible part of the chip (category, label, toggle indicator)
@@ -47,6 +48,13 @@ export function createChip({ text, category, description = '', onDragStart, onDe
   label.textContent = text;
   contentDiv.appendChild(label);
 
+  // Add "NEW" badge if applicable
+  if (isNew) {
+      const newBadge = document.createElement('span');
+      newBadge.className = 'chip-new-badge';
+      newBadge.textContent = 'NEW';
+      contentDiv.appendChild(newBadge); // Add badge within the content area
+  }
   chipHeader.appendChild(contentDiv);
 
   // Toggle Indicator (only if there's a description)
