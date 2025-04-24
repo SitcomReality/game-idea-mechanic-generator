@@ -120,22 +120,24 @@ export function setGameTitle(title) {
 
     // Only update and persist if the title actually changes
     if (finalTitle !== previousTitle) {
-        // When the title changes, we need to handle the draft content.
-        // Option 1: Load the draft associated with the new title.
-        // Option 2: Keep the current draft content and associate it with the new title (potentially overwriting).
-        // Option 1 seems more intuitive for explicit title changes via typing/loading.
-        // Let's load the draft for the new title. If none exists, clear the draft.
-        const existingDraftForNewTitle = storage.loadDraft(finalTitle, isValidDraftData);
-        setState('designDraft', existingDraftForNewTitle || []); // Load or clear draft
+        // Get the current draft content *before* changing the title state
+        const currentDraft = getState('designDraft');
 
+        // Update the title in the state
         setState('gameTitle', finalTitle);
-        storage.saveLastOpenedTitle(finalTitle); // Persist last opened title
 
-        // Notify title change *after* potential draft change
+        // Persist the current draft under the *new* title
+        storage.saveDraft(finalTitle, currentDraft);
+
+        // Persist the new title as the last opened title
+        storage.saveLastOpenedTitle(finalTitle);
+
+        // Notify title change
         notifyListeners('gameTitle', finalTitle);
-        // Notify draft change if it occurred
-        notifyListeners('designDraft', getState('designDraft'));
 
+        // Optionally, notify listeners that the list of saved drafts might have changed
+        // (because a new title might have been added implicitly by saving)
+        notifyListeners('savedDrafts', storage.getSavedDraftTitles());
     }
 }
 
@@ -192,16 +194,16 @@ export function saveCurrentDraftUnderTitle(title) {
 
 export function loadDraftByTitle(title) {
     const draft = storage.loadDraft(title, isValidDraftData);
-    if (draft) {
+    if (draft !== null) { // Check if draft was found or is empty array (valid)
+        // Update the current game title state and persist as last opened *first*
+        // This ensures subsequent autosaves use the correct title
+        setState('gameTitle', title);
+        storage.saveLastOpenedTitle(title);
+        notifyListeners('gameTitle', title);
+
         // Update draft state - This will also trigger the autosave under the *new* title.
         setState('designDraft', draft);
         notifyListeners('designDraft', getState('designDraft'));
-
-        // Update the current game title state and persist as last opened
-        // This handles title state update and notification. It will NOT reload the draft again.
-        setState('gameTitle', title); // Directly set state to avoid re-loading draft
-        storage.saveLastOpenedTitle(title);
-        notifyListeners('gameTitle', title);
 
     } else {
         console.error(`Failed to load draft for title "${title}"`);
