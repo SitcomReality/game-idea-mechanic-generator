@@ -1,5 +1,3 @@
-// New file: scripts/state/stateGettersSetters.js
-
 import { getState, setState, notifyListeners } from './core.js';
 import * as storage from './localStorageManager.js';
 import { isValidDraftData } from './utils.js';
@@ -72,12 +70,12 @@ export function addToGeneratedIdeas(idea) {
 }
 
 export function setDesignDraft(draft) {
-    // Note: Persisting draft happens only on explicit save action (saveCurrentDraftUnderTitle)
-    // or when loading a different draft.
     if (isValidDraftData(draft)) {
         setState('designDraft', draft);
+        // **AUTOSAVE**: Save draft to localStorage under the current title whenever it's set
+        const currentTitle = getState('gameTitle');
+        storage.saveDraft(currentTitle, draft);
         notifyListeners('designDraft', getState('designDraft'));
-        // Note: Saving to localStorage is handled by explicit save actions
     } else {
         console.error("Attempted to set invalid design draft. Operation cancelled.");
     }
@@ -93,8 +91,10 @@ export function addToDesignDraft(item) {
         currentDraft.push(item);
         setState('designDraft', currentDraft);
     }
+    // **AUTOSAVE**: Save draft to localStorage under the current title after adding an item
+    const currentTitle = getState('gameTitle');
+    storage.saveDraft(currentTitle, getState('designDraft'));
     notifyListeners('designDraft', getState('designDraft'));
-    // Note: Saving to localStorage is handled by explicit save actions
 }
 
 export function removeFromDesignDraft(index) {
@@ -102,8 +102,10 @@ export function removeFromDesignDraft(index) {
     if (index >= 0 && index < currentDraft.length) {
         currentDraft.splice(index, 1);
         setState('designDraft', currentDraft);
+        // **AUTOSAVE**: Save draft to localStorage under the current title after removing an item
+        const currentTitle = getState('gameTitle');
+        storage.saveDraft(currentTitle, getState('designDraft'));
         notifyListeners('designDraft', getState('designDraft'));
-        // Note: Saving to localStorage is handled by explicit save actions
     } else {
         console.warn(`Attempted to remove draft item at invalid index: ${index}`);
     }
@@ -116,9 +118,22 @@ export function setGameTitle(title) {
 
     // Only update and persist if the title actually changes
     if (finalTitle !== previousTitle) {
+        // When the title changes, we need to handle the draft content.
+        // Option 1: Load the draft associated with the new title.
+        // Option 2: Keep the current draft content and associate it with the new title (potentially overwriting).
+        // Option 1 seems more intuitive for explicit title changes via typing/loading.
+        // Let's load the draft for the new title. If none exists, clear the draft.
+        const existingDraftForNewTitle = storage.loadDraft(finalTitle, isValidDraftData);
+        setState('designDraft', existingDraftForNewTitle || []); // Load or clear draft
+
         setState('gameTitle', finalTitle);
         storage.saveLastOpenedTitle(finalTitle); // Persist last opened title
+
+        // Notify title change *after* potential draft change
         notifyListeners('gameTitle', finalTitle);
+        // Notify draft change if it occurred
+        notifyListeners('designDraft', getState('designDraft'));
+
     }
 }
 
@@ -159,25 +174,33 @@ export function setIdeaDetailLevel(level) {
 
 export function saveCurrentDraftUnderTitle(title) {
     const draft = getState('designDraft');
-    // Only save the draft, do not touch generated ideas here
+    // The saveDraft function is now called automatically on changes.
+    // This button's primary function might now be more about *confirming* the state
+    // under a specific title, especially if the user changed the title *without* blur.
+    // Let's ensure the *current* state is saved under the *current* title when clicked.
     if (storage.saveDraft(title, draft)) {
-        // If save succeeds, also update the current game title state
+        // If save succeeds, ensure the current game title state matches
         // and persist it as the last opened title
         setGameTitle(title); // This handles state update, persistence, and notification
         notifyListeners('savedDrafts', storage.getSavedDraftTitles()); // Notify list change
+        return true; // Indicate success
     }
+    return false; // Indicate failure
 }
 
 export function loadDraftByTitle(title) {
     const draft = storage.loadDraft(title, isValidDraftData);
     if (draft) {
-        // Update draft state
+        // Update draft state - This will also trigger the autosave under the *new* title.
         setState('designDraft', draft);
         notifyListeners('designDraft', getState('designDraft'));
 
         // Update the current game title state and persist as last opened
-        // This also notifies listeners for the title change.
-        setGameTitle(title);
+        // This handles title state update and notification. It will NOT reload the draft again.
+        setState('gameTitle', title); // Directly set state to avoid re-loading draft
+        storage.saveLastOpenedTitle(title);
+        notifyListeners('gameTitle', title);
+
     } else {
         console.error(`Failed to load draft for title "${title}"`);
         alert(`Could not load draft "${title}". It might be missing or corrupted.`);
@@ -185,15 +208,19 @@ export function loadDraftByTitle(title) {
 }
 
 export function deleteDraftByTitle(title) {
-    // Only delete the draft, do not touch generated ideas
+    const currentTitle = getState('gameTitle');
     if (storage.deleteDraft(title)) {
         notifyListeners('savedDrafts', storage.getSavedDraftTitles()); // Notify list change
-        // If the deleted draft was the currently loaded one, clear the draft panel
-        if (getState('gameTitle') === title) {
+        // If the deleted draft was the currently loaded one, clear the draft panel and reset title
+        if (currentTitle === title) {
              setState('designDraft', []);
+             // Also save the empty draft under the (now default) title
+             storage.saveDraft("Untitled Game", []);
              notifyListeners('designDraft', getState('designDraft'));
-             // Optionally set title back to default
-             setGameTitle("Untitled Game");
+             // Reset title state and persist it
+             setState('gameTitle', "Untitled Game");
+             storage.saveLastOpenedTitle("Untitled Game");
+             notifyListeners('gameTitle', "Untitled Game");
         }
     }
 }
