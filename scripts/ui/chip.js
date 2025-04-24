@@ -19,11 +19,12 @@ function getCategoryClassName(categoryName) {
 
 // Accept state as argument to save ideas
 // Accept isNew flag
-export function createChip({ text, category, description = '', onDragStart, onDelete, state, isNew = false }) {
+export function createChip({ text, category, description = '', onDragStart, onDelete, state }, isNew = false) {
   const chip = document.createElement('div');
   const categoryClassName = getCategoryClassName(category);
   chip.className = `chip ${categoryClassName}${isNew ? ' chip--new' : ''}`; // Add new class if needed
   chip.draggable = true;
+  chip.style.position = 'relative'; // Add relative positioning for the badge
 
   // Main visible part of the chip (category, label, toggle indicator)
   const chipHeader = document.createElement('div');
@@ -48,13 +49,6 @@ export function createChip({ text, category, description = '', onDragStart, onDe
   label.textContent = text;
   contentDiv.appendChild(label);
 
-  // Add "NEW" badge if applicable
-  if (isNew) {
-      const newBadge = document.createElement('span');
-      newBadge.className = 'chip-new-badge';
-      newBadge.textContent = 'NEW';
-      contentDiv.appendChild(newBadge); // Add badge within the content area
-  }
   chipHeader.appendChild(contentDiv);
 
   // Toggle Indicator (only if there's a description)
@@ -67,7 +61,6 @@ export function createChip({ text, category, description = '', onDragStart, onDe
 
   chip.appendChild(chipHeader);
 
-
   // Details section (hidden by default)
   let detailsDiv = null;
   if (description) {
@@ -77,8 +70,7 @@ export function createChip({ text, category, description = '', onDragStart, onDe
     chip.appendChild(detailsDiv); // Add it to the chip, but it will be hidden by CSS
   }
 
-
-  // Container for action buttons (copy, save, delete)
+  // Define actions container *before* potentially adding buttons to it
   const actionsDiv = document.createElement('div');
   actionsDiv.className = 'chip-actions';
 
@@ -102,7 +94,7 @@ export function createChip({ text, category, description = '', onDragStart, onDe
       }).catch(err => {
         console.error('Failed to copy text: ', err);
         copyBtn.innerHTML = '✗'; // Error indicator
-         copyBtn.title = 'Copy failed';
+        copyBtn.title = 'Copy failed';
         setTimeout(() => {
           copyBtn.innerHTML = '📋'; // Revert icon
           copyBtn.title = 'Copy details';
@@ -166,6 +158,13 @@ export function createChip({ text, category, description = '', onDragStart, onDe
       chipHeader.appendChild(actionsDiv); // Add actions to the header part
   }
 
+  // Add "NEW" badge if applicable - Add directly to chip element
+  if (isNew) {
+      const newBadge = document.createElement('span');
+      newBadge.className = 'chip-new-badge';
+      newBadge.textContent = 'NEW';
+      chip.appendChild(newBadge); // Append badge directly to the chip
+  }
 
   // --- Event Listeners ---
 
@@ -179,7 +178,6 @@ export function createChip({ text, category, description = '', onDragStart, onDe
     });
     chipHeader.classList.add('clickable'); // Add class for cursor style
   }
-
 
   // Drag events
   chip.addEventListener('dragstart', (event) => {
