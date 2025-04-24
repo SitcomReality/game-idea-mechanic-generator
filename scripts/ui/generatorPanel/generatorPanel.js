@@ -8,7 +8,7 @@ import { initAddIdeaModal } from './addIdeaModal.js';
 function getAllTagPaths(taxonomy, currentPath = []) {
   let paths = [];
   if (!taxonomy || typeof taxonomy !== 'object') {
-    return paths; 
+    return paths;
   }
 
   Object.entries(taxonomy).forEach(([key, value]) => {
@@ -36,7 +36,7 @@ function getCategoryClassName(categoryName) {
 function normalizeCategoryName(categoryName) {
   if (categoryName === 'Theme') return 'Narrative Theme';
   if (categoryName === 'Setting') return 'Setting/Context';
-  return categoryName || 'Uncategorized'; 
+  return categoryName || 'Uncategorized';
 }
 
 export function initGeneratorPanel(state) {
@@ -208,11 +208,11 @@ export function initGeneratorPanel(state) {
       const useDraftContext = state.getUseDraftContext();
       const ideaDetailLevel = state.getIdeaDetailLevel();
 
-      let ideas = [];
+      let newlyGeneratedIdeas = [];
       const draftContextForLLM = useDraftContext ? designDraft : null;
 
       // Call the LLM generator function
-      ideas = await generateIdeasFromLLM(
+      newlyGeneratedIdeas = await generateIdeasFromLLM(
         selectedTags,
         quantity,
         customText,
@@ -221,20 +221,24 @@ export function initGeneratorPanel(state) {
       );
 
       // --- Validate and Normalize Response ---
-      if (!Array.isArray(ideas)) {
-          console.error("LLM did not return an array for generated ideas:", ideas);
+      if (!Array.isArray(newlyGeneratedIdeas)) {
+          console.error("LLM did not return an array for generated ideas:", newlyGeneratedIdeas);
           throw new Error("Received invalid data format from idea generator.");
       }
       // Ensure basic structure before normalization
-      ideas = ideas.filter(idea => idea && typeof idea === 'object' && typeof idea.text === 'string');
+      newlyGeneratedIdeas = newlyGeneratedIdeas.filter(idea => idea && typeof idea === 'object' && typeof idea.text === 'string');
       // Normalize category names (e.g., 'Theme' -> 'Narrative Theme')
-      const normalizedIdeas = ideas.map(idea => ({
+      const normalizedNewIdeas = newlyGeneratedIdeas.map(idea => ({
         ...idea,
         category: normalizeCategoryName(idea.category) // Use helper
       }));
 
+      // --- Combine new ideas with existing ones (prepend) ---
+      const currentIdeas = state.getGeneratedIdeas();
+      const combinedIdeas = [...normalizedNewIdeas, ...currentIdeas];
+
       // Update the generated ideas state (this triggers saving and re-rendering)
-      state.setGeneratedIdeas(normalizedIdeas);
+      state.setGeneratedIdeas(combinedIdeas);
 
     } catch (error) {
       console.error('Error generating ideas:', error);
@@ -302,7 +306,14 @@ export function initGeneratorPanel(state) {
         category: idea.category, // Already normalized when set
         description: idea.description || '',
         onDragStart: (event) => {
-          // Drag logic is handled by the Draft Panel's drop handler
+          // Prepare data for drag-and-drop
+          const dataToTransfer = {
+            text: idea.text,
+            category: idea.category,
+            description: idea.description,
+            type: 'chip'
+          };
+          event.dataTransfer.setData('application/json', JSON.stringify(dataToTransfer));
         },
         onDelete: () => {
           // Create a new array excluding the deleted item
@@ -319,7 +330,6 @@ export function initGeneratorPanel(state) {
 
   // --- Initial State Sync ---
   // Ensure UI elements reflect the initial state loaded from storage or defaults
-  // state.setGeneratedIdeas([]); // Removed this line - it was clearing loaded ideas
   state.setUseDraftContext(state.getUseDraftContext());
   state.setIdeaDetailLevel(state.getIdeaDetailLevel());
   renderSelectedTagsList(state.getSelectedTags());
