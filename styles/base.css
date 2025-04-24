@@ -227,7 +227,7 @@ a:hover {
     padding: var(--spacing-l);
 }
 
-/* New Placeholder Instruction Styles */
+/* Placeholder Instruction Styles */
 .placeholder-instructions {
   padding: var(--spacing-l);
   background-color: var(--placeholder-bg);
@@ -281,4 +281,13 @@ a:hover {
   font-family: monospace;
   font-size: 0.85em;
   vertical-align: middle;
+}
+
+/* Ensure placeholders inside draft container use padding */
+#draft-container .placeholder-instructions {
+  padding: var(--spacing-m); /* Override default L spacing if needed */
+  margin: 0; /* Override potential margins */
+  border-radius: 0; /* Remove radius if inside editable container */
+  border: none; /* Remove border */
+  background: none; /* Remove specific background */
 }

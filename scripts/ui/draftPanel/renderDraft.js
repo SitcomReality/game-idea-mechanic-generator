@@ -1,4 +1,5 @@
 import { createChip } from '../chip.js';
+import { designDraftPlaceholderText } from '../../data/instructions/designDraftPlaceholder.js'; // Import the placeholder text
 
 // Helper function to get top-level category name for grouping
 function getTopLevelCategory(item) {
@@ -48,7 +49,7 @@ export function renderDesignDraft(draftContainer, draft, state) {
 
 
   if (draft.length === 0) {
-    draftContainer.innerHTML = '<p class="empty-state">Drag ideas here or click "Add Chip" to build your design draft</p>';
+    draftContainer.innerHTML = designDraftPlaceholderText; // Use imported placeholder text
     return;
   }
 
@@ -104,8 +105,8 @@ export function renderDesignDraft(draftContainer, draft, state) {
               },
               // Dragging chips *within* the draft isn't needed/supported here
               onDragStart: null, // Keep null for now
-              state: state // Pass state to enable save button
-          });
+              state: state // Pass state to enable save button - CHIP SAVE BUTTON DOES NOT BELONG HERE
+          }, false); // Ensure isNew is false for draft chips
           chipsContainerDiv.appendChild(chip);
       });
 
@@ -122,7 +123,17 @@ export function renderDesignDraft(draftContainer, draft, state) {
     const currentDraft = state.getDesignDraft();
     // Only update if it's currently a single HTML block state
     if (currentDraft.length === 1 && currentDraft[0].type === 'html') {
-        state.setDesignDraft([{ text: content, type: 'html' }]);
+        // Update state without triggering a full re-render immediately
+        // This allows smooth typing. Autosave still happens via state setters.
+        const currentState = state.getDesignDraft();
+        if (currentState.length === 1 && currentState[0].type === 'html') {
+            currentState[0].text = content;
+            // Directly save to prevent losing data if user leaves page without blur
+            storage.saveDraft(state.getGameTitle(), currentState);
+            // We might not need to call setState/notifyListeners here unless other components
+            // *really* need to know about every keystroke in the HTML view.
+            // setState('designDraft', currentState, false); // Optional: Update state without notifying?
+        }
     } else {
         console.warn("Input event fired on non-editable or non-HTML draft state. Ignoring.");
     }
