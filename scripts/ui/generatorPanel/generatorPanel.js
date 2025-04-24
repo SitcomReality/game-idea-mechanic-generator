@@ -199,6 +199,14 @@ export function initGeneratorPanel(state) {
         ideaDetailLevel
       );
 
+      // --- Add validation here ---
+      if (!Array.isArray(ideas)) {
+          console.error("LLM did not return an array for generated ideas:", ideas);
+          throw new Error("Received invalid data format from idea generator.");
+      }
+      // Ensure basic structure before normalization and saving
+      ideas = ideas.filter(idea => idea && typeof idea === 'object' && typeof idea.text === 'string');
+
       const normalizedIdeas = ideas.map(idea => ({
         ...idea,
         category: normalizeCategoryName(idea.category)
