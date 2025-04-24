@@ -30,6 +30,13 @@
   --category-social-multiplayer: #ba68c8; /* Purple */
   --category-default: var(--text-secondary); /* Fallback */
 
+  /* Instruction Placeholder Styles */
+  --placeholder-bg: var(--bg-primary);
+  --placeholder-border: var(--border-color);
+  --placeholder-text: var(--text-secondary);
+  --placeholder-heading: var(--text-primary);
+  --placeholder-icon-bg: rgba(125, 92, 255, 0.1); /* Light accent background */
+  --placeholder-icon-color: var(--accent-primary); /* Accent color */
 
   /* Sizing */
   --spacing-xs: 0.25rem;
@@ -218,4 +225,60 @@ a:hover {
     font-style: italic;
     text-align: center;
     padding: var(--spacing-l);
+}
+
+/* New Placeholder Instruction Styles */
+.placeholder-instructions {
+  padding: var(--spacing-l);
+  background-color: var(--placeholder-bg);
+  border: 1px dashed var(--placeholder-border);
+  border-radius: var(--border-radius-m);
+  color: var(--placeholder-text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  height: 100%; /* Try to fill the container */
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholder-instructions h4 {
+  color: var(--placeholder-heading);
+  font-size: 1.1rem;
+  margin-bottom: var(--spacing-m);
+  border-bottom: 1px solid var(--placeholder-border);
+  padding-bottom: var(--spacing-s);
+}
+
+.placeholder-instructions ol,
+.placeholder-instructions ul {
+  margin-left: var(--spacing-l);
+  margin-bottom: var(--spacing-m);
+}
+
+.placeholder-instructions li {
+  margin-bottom: var(--spacing-s);
+}
+
+.placeholder-instructions strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.placeholder-instructions p:last-child {
+  margin-top: auto; /* Push the last paragraph down */
+  padding-top: var(--spacing-m);
+  border-top: 1px dashed var(--placeholder-border);
+  font-weight: 600;
+  color: var(--accent-tertiary);
+}
+
+.placeholder-instructions .icon-inline {
+  display: inline-block;
+  background-color: var(--placeholder-icon-bg);
+  color: var(--placeholder-icon-color);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: monospace;
+  font-size: 0.85em;
+  vertical-align: middle;
 }

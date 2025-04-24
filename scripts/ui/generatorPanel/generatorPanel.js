@@ -4,6 +4,7 @@ import { generateIdeasFromLLM } from '../../generators/llmGenerator.js';
 import { showTooltip, hideTooltip } from '../tooltipManager.js';
 import { initLoadIdeasModal } from './loadIdeasModal.js';
 import { initAddIdeaModal } from './addIdeaModal.js';
+import { generatedIdeasPlaceholderText } from '../../data/instructions/generatedIdeasPlaceholder.js'; // Import instructions
 
 function getAllTagPaths(taxonomy, currentPath = []) {
   let paths = [];
@@ -182,7 +183,6 @@ export function initGeneratorPanel(state) {
   useDraftContextCheckbox.addEventListener('change', () => {
     state.setUseDraftContext(useDraftContextCheckbox.checked); // Update state on change
   });
-  // Sync checkbox state if loaded from storage
   state.subscribe('useDraftContext', (useContext) => {
     useDraftContextCheckbox.checked = useContext;
   });
@@ -190,7 +190,6 @@ export function initGeneratorPanel(state) {
   ideaDetailLevelSelect.addEventListener('change', () => {
     state.setIdeaDetailLevel(ideaDetailLevelSelect.value); // Update state on change
   });
-  // Sync select state if loaded from storage
   state.subscribe('ideaDetailLevel', (level) => {
     ideaDetailLevelSelect.value = level;
   });
@@ -313,7 +312,7 @@ export function initGeneratorPanel(state) {
     ideasContainer.innerHTML = ''; // Clear existing content
 
     if (!ideas || ideas.length === 0) {
-      ideasContainer.innerHTML = '<p class="empty-state">Generate ideas to see results here</p>';
+      ideasContainer.innerHTML = generatedIdeasPlaceholderText;
       return;
     }
     const chipsContainer = document.createElement('div');
