@@ -67,13 +67,6 @@ export function initAddIdeaModal(state) {
   addIdeaModalCloseBtn.addEventListener('click', hideAddIdeaModal);
   addIdeaModalCancelBtn.addEventListener('click', hideAddIdeaModal);
 
-  // Hide modal if backdrop is clicked
-  addIdeaModal.addEventListener('click', (event) => {
-    if (event.target === addIdeaModal) {
-      hideAddIdeaModal();
-    }
-  });
-
   // Show/Hide Custom Category Input
   ideaCategorySelect.addEventListener('change', () => {
     if (ideaCategorySelect.value === '__custom__') {

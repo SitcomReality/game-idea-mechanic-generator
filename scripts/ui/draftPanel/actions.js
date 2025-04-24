@@ -36,6 +36,7 @@ function getLocalStorageUsage() {
     };
 }
 
+
 export function initDraftActions(state) {
     const cohereDraftBtn = document.getElementById('cohere-draft-btn');
     const clearDraftBtn = document.getElementById('clear-draft-btn');
@@ -137,35 +138,30 @@ export function initDraftActions(state) {
             return;
         }
 
-        // Check if a draft with this title already exists
+        // --- Overwrite Confirmation ---
         const savedTitles = state.getSavedGameTitles();
-        const draftExists = savedTitles.includes(currentTitle);
+        let proceedToSave = true; // Assume we can save unless an overwrite is cancelled
 
-        // Ask for confirmation if the draft already exists
-        if (draftExists) {
-          if (!window.confirm(`A draft with the title "${currentTitle}" already exists. Do you want to overwrite it?`)) {
-            return; // User cancelled the overwrite
-          }
+        if (savedTitles.includes(currentTitle)) {
+            proceedToSave = window.confirm(`A draft with the title "${currentTitle}" already exists. Overwrite it?`);
         }
+        // --- End Confirmation ---
 
-        // Proceed with saving (or overwriting)
-        try {
-            // Use the state action which handles the actual saving logic (including autosave side effect)
-            if (state.saveCurrentDraftUnderTitle(currentTitle)) {
+        if (proceedToSave) {
+            try {
+                state.saveCurrentDraftUnderTitle(currentTitle); // State handles the actual saving
                 saveDraftBtn.textContent = 'Saved!';
                 setTimeout(() => { saveDraftBtn.textContent = 'Save'; }, 1500);
-            } else {
-                 // This branch might not be reachable if saveCurrentDraftUnderTitle always throws on error
-                 // but kept for robustness
-                 alert(`Failed to save draft "${currentTitle}". See console for details.`);
+            } catch (error) {
+                 console.error(`Error saving draft "${currentTitle}":`, error);
+                 alert(`Failed to save draft: ${error.message}`);
                  saveDraftBtn.textContent = 'Error!';
                  setTimeout(() => { saveDraftBtn.textContent = 'Save'; }, 1500);
             }
-        } catch (error) { // Catch errors thrown by saveCurrentDraftUnderTitle (e.g., QuotaExceeded)
-             console.error(`Error saving draft "${currentTitle}":`, error);
-             alert(`Failed to save draft: ${error.message}`);
-             saveDraftBtn.textContent = 'Error!';
-             setTimeout(() => { saveDraftBtn.textContent = 'Save'; }, 1500);
+        } else {
+            // User cancelled overwrite - do nothing, maybe provide feedback
+            console.log(`Save cancelled for title "${currentTitle}"`);
+            saveDraftBtn.textContent = 'Save'; // Ensure button text is reset
         }
       });
       saveDraftBtn.addEventListener('mouseenter', (e) => showTooltip(e.currentTarget, saveDraftBtn.title));
@@ -256,6 +252,7 @@ export function initDraftActions(state) {
             }
         });
     } else { console.warn("Load Draft Modal not found"); }
+
 
     // --- Export ---
     if (exportDraftBtn) {
