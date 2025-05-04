@@ -1,6 +1,8 @@
 // New file: scripts/ui/imagePanel/imagePanel.js
 import { callLLMWithPrompt } from '../../llm/callLLM.js';
 import { GENERATE_IMAGE_PROMPT } from '../../llm/prompts.js';
+import { initImageTabs } from './imageTabs.js';
+import { initRandomInspirationTab } from './randomInspirationTab.js';
 
 // Helper function to extract text content from different sources
 function getTextFromSource(source, state) {
@@ -33,6 +35,10 @@ function getTextFromSource(source, state) {
 }
 
 export function initImagePanel(state) {
+  // Initialize tabs
+  initImageTabs();
+  initRandomInspirationTab(state);
+
   const imagePanel = document.getElementById('image-panel');
   const sourceRadios = imagePanel.querySelectorAll('input[name="image-source"]');
   const aspectRatioSelect = document.getElementById('aspect-ratio-select');

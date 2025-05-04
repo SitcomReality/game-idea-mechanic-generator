@@ -150,38 +150,92 @@
 
     <section id="image-panel" class="panel">
       <h2>Concept Art</h2>
-      <div class="image-generation-options">
-        <h4>Image Generation Options:</h4>
-        <div class="control-group source-select-group">
-          <label>Image Prompt Source:</label>
-          <div class="radio-group">
-            <label><input type="radio" name="image-source" value="ideas" checked> Generated Ideas</label>
-            <label><input type="radio" name="image-source" value="draft"> Design Draft</label>
-            <label><input type="radio" name="image-source" value="brief"> Design Brief</label>
+      <div class="image-tabs">
+        <button class="image-tab-button active" data-tab="image-source-tab">Source-Based Generation</button>
+        <button class="image-tab-button" data-tab="random-inspiration-tab">Random Inspiration</button>
+      </div>
+      
+      <div id="image-source-tab" class="image-tab-content active">
+        <div class="image-generation-options">
+          <h4>Image Generation Options:</h4>
+          <div class="control-group source-select-group">
+            <label>Image Prompt Source:</label>
+            <div class="radio-group">
+              <label><input type="radio" name="image-source" value="ideas" checked> Generated Ideas</label>
+              <label><input type="radio" name="image-source" value="draft"> Design Draft</label>
+              <label><input type="radio" name="image-source" value="brief"> Design Brief</label>
+            </div>
+          </div>
+          <div class="control-group aspect-ratio-group">
+            <label for="aspect-ratio-select">Aspect Ratio:</label>
+            <select id="aspect-ratio-select">
+              <option value="1:1" selected>1:1 (Square)</option>
+              <option value="16:9">16:9 (Widescreen)</option>
+              <option value="9:16">9:16 (Portrait)</option>
+              <option value="4:3">4:3 (Standard)</option>
+              <option value="3:4">3:4 (Tall)</option>
+              <option value="21:9">21:9 (Cinematic)</option>
+              <option value="9:21">9:21 (Tall Cinematic)</option>
+              <option value="3:2">3:2</option>
+              <option value="2:3">2:3</option>
+            </select>
+          </div>
+          <div class="control-group image-style-group">
+            <label for="image-style-input">Optional Style Modifiers:</label>
+            <input type="text" id="image-style-input" placeholder="e.g., pixel art, watercolor, cinematic lighting...">
           </div>
         </div>
-        <div class="control-group aspect-ratio-group">
-          <label for="aspect-ratio-select">Aspect Ratio:</label>
-          <select id="aspect-ratio-select">
-            <option value="1:1" selected>1:1 (Square)</option>
-            <option value="16:9">16:9 (Widescreen)</option>
-            <option value="9:16">9:16 (Portrait)</option>
-            <option value="4:3">4:3 (Standard)</option>
-            <option value="3:4">3:4 (Tall)</option>
-            <option value="21:9">21:9 (Cinematic)</option>
-            <option value="9:21">9:21 (Tall Cinematic)</option>
-            <option value="3:2">3:2</option>
-            <option value="2:3">2:3</option>
-          </select>
-        </div>
-        <div class="control-group image-style-group">
-          <label for="image-style-input">Optional Style Modifiers:</label>
-          <input type="text" id="image-style-input" placeholder="e.g., pixel art, watercolor, cinematic lighting...">
+        <div class="image-generation-action">
+          <button id="generate-image-btn" class="primary-btn">Generate Image</button>
         </div>
       </div>
-      <div class="image-generation-action">
-        <button id="generate-image-btn" class="primary-btn">Generate Image</button>
+      
+      <div id="random-inspiration-tab" class="image-tab-content">
+        <div class="random-inspiration-options">
+          <h4>Random Inspiration Options:</h4>
+          <div class="control-group">
+            <label for="random-type-select">Type of Inspiration:</label>
+            <select id="random-type-select">
+              <option value="concept" selected>General Game Concept</option>
+              <option value="screenshot">Game Screenshot</option>
+              <option value="ui">UI/UX Design</option>
+              <option value="character">Game Character</option>
+              <option value="environment">Game Environment</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="random-style-select">Art Style:</label>
+            <select id="random-style-select">
+              <option value="any" selected>Any Style</option>
+              <option value="pixel art">Pixel Art</option>
+              <option value="3D rendered">3D Rendered</option>
+              <option value="hand-drawn">Hand-Drawn</option>
+              <option value="watercolor">Watercolor</option>
+              <option value="vector">Vector Art</option>
+              <option value="minimalist">Minimalist</option>
+              <option value="retro">Retro</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="random-aspect-ratio-select">Aspect Ratio:</label>
+            <select id="random-aspect-ratio-select">
+              <option value="1:1" selected>1:1 (Square)</option>
+              <option value="16:9">16:9 (Widescreen)</option>
+              <option value="9:16">9:16 (Portrait)</option>
+              <option value="4:3">4:3 (Standard)</option>
+              <option value="3:4">3:4 (Tall)</option>
+            </select>
+          </div>
+          <div class="random-tags-option">
+            <input type="checkbox" id="use-selected-tags">
+            <label for="use-selected-tags">Include selected tags from generator panel</label>
+          </div>
+        </div>
+        <div class="image-generation-action">
+          <button id="generate-random-prompt-btn" class="primary-btn">Generate Random Inspiration</button>
+        </div>
       </div>
+      
       <div id="image-display-area">
         <div id="image-placeholder" class="image-placeholder">
           <span id="image-placeholder-text">Click "Generate Image" to create concept art</span>
