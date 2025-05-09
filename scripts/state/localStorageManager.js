@@ -245,6 +245,7 @@ export function loadBriefOptionsSetting() {
         includeTargetAudience: true,
         includeTechnical: true,
         includeFileStructure: false,
+        includeVibeCoding: false, 
         technicalContext: 'agnostic'
     };
     const loaded = loadSetting(BRIEF_OPTIONS_STORAGE_KEY, defaults);

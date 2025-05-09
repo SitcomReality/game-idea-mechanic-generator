@@ -57,8 +57,15 @@ export function initBriefPanel(state) {
 
     briefSectionTogglesContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
       const sectionKey = checkbox.dataset.section;
+      // Construct the state key carefully, e.g., "targetAudience" -> "includeTargetAudience"
       const stateKey = `include${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}`;
-      checkbox.checked = options[stateKey];
+      if (options.hasOwnProperty(stateKey)) { // Check if the key exists in options
+        checkbox.checked = options[stateKey];
+      } else {
+        // If the key doesn't exist (e.g. new checkbox added, old saved state), default to false or its inherent HTML checked state
+        // console.warn(`Brief option key "${stateKey}" not found in loaded state for checkbox "${sectionKey}". Using checkbox default.`);
+        // It should ideally be initialized in loadBriefOptionsSetting
+      }
     });
 
     // Update visibility based on loaded state
